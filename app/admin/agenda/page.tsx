@@ -156,7 +156,6 @@ export default function AdminAgenda() {
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-1.5 sm:col-span-2">
               <div className="sm:col-span-2">
                 <ImageUpload
                   value={catForm.fotoUrl || ''}
