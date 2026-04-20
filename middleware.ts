@@ -1,17 +1,25 @@
-import { withAuth } from 'next-auth/middleware'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 
-export default withAuth(
-  function middleware(req) {
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
+  // Deixa login e api passar sempre
+  if (pathname === '/admin/login' || pathname.startsWith('/api/')) {
     return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
   }
-)
+
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+
+  // Não logado → redireciona para login
+  if (!token) {
+    const loginUrl = new URL('/admin/login', req.url)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  return NextResponse.next()
+}
 
 export const config = {
-  matcher: ['/admin/:path+'],
+  matcher: ['/admin/:path*'],
 }
