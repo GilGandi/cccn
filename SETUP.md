@@ -6,7 +6,7 @@ Adicione as seguintes variáveis:
 
 | Variável | Valor |
 |---|---|
-| DATABASE_URL | postgresql://neondb_owner:npg_79qDIzpEusax@ep-damp-mountain-acto155q-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require |
+| DATABASE_URL | (use a string de conexão do Neon — não compartilhe publicamente) |
 | NEXTAUTH_URL | https://SEU-SITE.netlify.app (substitua pela URL real) |
 | NEXTAUTH_SECRET | cccn-super-secret-key-2024-mude-em-producao |
 
