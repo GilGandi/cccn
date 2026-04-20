@@ -157,9 +157,12 @@ export default function AdminAgenda() {
                 </div>
               </div>
               <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <label className="font-body text-[0.6rem] tracking-widest uppercase text-[#888480]">URL da foto de fundo (opcional)</label>
-                <input value={catForm.fotoUrl} onChange={e => setCatForm({...catForm, fotoUrl: e.target.value})} className={inp} placeholder="https://exemplo.com/foto.jpg"/>
-                <p className="font-body text-[0.65rem] text-[#888480]/60">Cole o link de uma imagem. Será usada como fundo semi-transparente nos cards dos eventos desta categoria.</p>
+              <div className="sm:col-span-2">
+                <ImageUpload
+                  value={catForm.fotoUrl || ''}
+                  onChange={(url) => setCatForm({...catForm, fotoUrl: url})}
+                  label="Foto de fundo (opcional)"
+                />
               </div>
             </div>
             <div className="flex gap-3">
