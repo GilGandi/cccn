@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  LIDER
+}
+
+enum Ministerio {
+  GERAL
+  HOMENS
+  MULHERES
+  JOVENS
+  FAMILIA
+  CELULAS
+}
+
+model User {
+  id         String     @id @default(cuid())
+  name       String
+  email      String     @unique
+  password   String
+  role       Role       @default(LIDER)
+  ministerio Ministerio @default(GERAL)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Evento {
+  id          String     @id @default(cuid())
+  titulo      String
+  descricao   String?
+  data        DateTime
+  horario     String
+  ministerio  Ministerio @default(GERAL)
+  destaque    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Palavra {
+  id          String   @id @default(cuid())
+  titulo      String
+  descricao   String?
+  videoUrl    String?
+  pregador    String?
+  data        DateTime @default(now())
+  publicado   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Foto {
+  id          String   @id @default(cuid())
+  url         String
+  legenda     String?
+  galeria     String   @default("geral")
+  ordem       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model Aviso {
+  id          String   @id @default(cuid())
+  texto       String
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
