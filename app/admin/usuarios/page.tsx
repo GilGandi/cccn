@@ -3,14 +3,14 @@ import { useEffect, useState } from 'react'
 
 type User = { id: string; name: string; email: string; role: string; createdAt: string }
 const inp = "bg-[#0a0a0a] border border-[rgba(240,237,232,0.12)] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 outline-none focus:border-[#c8b99a] transition-colors rounded-sm w-full placeholder:text-[#888480]/40"
-const empty = { name: '', email: '', password: '', role: 'LIDER' }
+const empty = { name: '', email: '', password: '', role: 'COLABORADOR' }
 
 export default function AdminUsuarios() {
-  const [users, setUsers]     = useState<User[]>([])
-  const [form, setForm]       = useState<any>(empty)
+  const [users, setUsers]       = useState<User[]>([])
+  const [form, setForm]         = useState<any>(empty)
   const [showForm, setShowForm] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [msg, setMsg]         = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [msg, setMsg]           = useState('')
 
   const load = async () => {
     const r = await fetch('/api/usuarios')
@@ -27,10 +27,13 @@ export default function AdminUsuarios() {
     setLoading(false)
   }
 
-  const del = async (id: string) => {
+  const del = async (id: string, role: string) => {
+    if (role === 'ADMIN') return
     if (!confirm('Deletar este usuário?')) return
-    await fetch(`/api/usuarios/${id}`, { method: 'DELETE' })
-    load()
+    const r = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' })
+    const d = await r.json()
+    if (!r.ok) setMsg(d.error)
+    else load()
   }
 
   return (
@@ -46,7 +49,7 @@ export default function AdminUsuarios() {
         </button>
       </div>
 
-      {msg && <p className={`mb-4 font-body text-[0.82rem] ${msg.includes('sucesso') ? 'text-[#8ec88e]' : 'text-red-400'}`}>{msg}</p>}
+      {msg && <p className={`mb-4 font-body text-[0.82rem] px-4 py-2 rounded ${msg.includes('sucesso') ? 'text-[#8ec88e] bg-[rgba(140,200,140,0.08)]' : 'text-red-400 bg-[rgba(255,100,100,0.08)]'}`}>{msg}</p>}
 
       {showForm && (
         <form onSubmit={save} className="mb-8 p-6 rounded border border-[rgba(240,237,232,0.12)] bg-[#111] flex flex-col gap-4">
@@ -64,10 +67,9 @@ export default function AdminUsuarios() {
               </div>
             ))}
             <div className="flex flex-col gap-1.5">
-              <label className="font-body text-[0.6rem] tracking-[0.2em] uppercase text-[#888480]">Função</label>
+              <label className="font-body text-[0.6rem] tracking-[0.2em] uppercase text-[#888480]">Perfil de acesso</label>
               <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className={inp}>
-                <option value="ADMIN">Admin (acesso total)</option>
-                <option value="LIDER">Líder</option>
+                <option value="COLABORADOR">Colaborador</option>
               </select>
             </div>
           </div>
@@ -89,14 +91,18 @@ export default function AdminUsuarios() {
         {users.map(u => (
           <div key={u.id} className="flex items-center justify-between p-4 rounded border border-[rgba(240,237,232,0.08)] bg-[#111] gap-4">
             <div>
-              <div className="font-display text-[1rem] text-[#f0ede8] mb-0.5">{u.name}</div>
-              <div className="font-body text-[0.75rem] text-[#888480]">
-                {u.email} · {u.role === 'ADMIN' ? '👑 Admin' : '🙋 Líder'}
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="font-display text-[1rem] text-[#f0ede8]">{u.name}</span>
+                {u.role === 'ADMIN' && <span className="font-body text-[0.55rem] tracking-widest uppercase px-2 py-0.5 bg-[rgba(200,185,154,0.15)] text-[#c8b99a] rounded">Administrador</span>}
               </div>
+              <div className="font-body text-[0.75rem] text-[#888480]">{u.email}</div>
             </div>
-            <button onClick={() => del(u.id)} className="px-3 py-1.5 font-body text-[0.65rem] tracking-widest uppercase text-red-400 border border-[rgba(255,100,100,0.2)] hover:bg-[rgba(255,100,100,0.08)] transition-colors shrink-0">
-              Deletar
-            </button>
+            {u.role !== 'ADMIN' && (
+              <button onClick={() => del(u.id, u.role)}
+                className="px-3 py-1.5 font-body text-[0.65rem] tracking-widest uppercase text-red-400 border border-[rgba(255,100,100,0.2)] hover:bg-[rgba(255,100,100,0.08)] transition-colors shrink-0">
+                Deletar
+              </button>
+            )}
           </div>
         ))}
       </div>

@@ -9,23 +9,24 @@ datasource db {
 
 enum Role {
   ADMIN
-  LIDER
+  COLABORADOR
 }
 
 model User {
-  id         String   @id @default(cuid())
-  name       String
-  email      String   @unique
-  password   String
-  role       Role     @default(LIDER)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(COLABORADOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Categoria {
   id        String   @id @default(cuid())
   nome      String
   cor       String   @default("#c8b99a")
+  fotoUrl   String?
   eventos   Evento[]
   createdAt DateTime @default(now())
 }

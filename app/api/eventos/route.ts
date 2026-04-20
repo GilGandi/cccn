@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   const hoje = new Date()
+  hoje.setHours(0, 0, 0, 0) // início do dia atual
   const seisM = new Date()
   seisM.setMonth(seisM.getMonth() + 6)
 

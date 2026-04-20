@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
-  const { nome, cor } = await req.json()
-  const cat = await prisma.categoria.create({ data: { nome, cor: cor || '#c8b99a' } })
+  const { nome, cor, fotoUrl } = await req.json()
+  const cat = await prisma.categoria.create({ data: { nome, cor: cor || '#c8b99a', fotoUrl: fotoUrl || null } })
   return NextResponse.json(cat)
 }

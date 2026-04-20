@@ -16,16 +16,20 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-  if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  if (!token || (token.role as string) !== 'ADMIN')
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const { name, email, password, role } = await req.json()
+
+  // Só pode criar COLABORADOR — ADMIN é único
+  const safeRole = role === 'ADMIN' ? 'COLABORADOR' : role
 
   const existing = await prisma.user.findUnique({ where: { email } })
   if (existing) return NextResponse.json({ error: 'E-mail já cadastrado.' }, { status: 400 })
 
   const hash = await bcrypt.hash(password, 10)
   const user = await prisma.user.create({
-    data: { name, email, password: hash, role },
+    data: { name, email, password: hash, role: safeRole },
     select: { id: true, name: true, email: true, role: true, createdAt: true },
   })
   return NextResponse.json(user)

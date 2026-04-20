@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
 
 export default async function Agenda() {
   const hoje = new Date()
+  hoje.setHours(0, 0, 0, 0)
   const seisM = new Date()
   seisM.setMonth(seisM.getMonth() + 6)
 

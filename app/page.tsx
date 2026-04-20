@@ -7,6 +7,7 @@ import Footer from '@/components/Footer'
 import WoodCross from '@/components/WoodCross'
 import ScrollReveal from '@/components/ScrollReveal'
 import CopyPix from '@/components/CopyPix'
+import VersiculoAleatorio from '@/components/VersiculoAleatorio'
 
 export default async function Home() {
   const hoje = new Date()
@@ -101,18 +102,8 @@ export default async function Home() {
         </ScrollReveal>
       </div>
 
-      {/* ── VERSÍCULO ── */}
-      <ScrollReveal>
-        <div className="relative overflow-hidden text-center py-16 sm:py-24 px-6"
-          style={{ borderTop: '1px solid rgba(240,237,232,0.12)', borderBottom: '1px solid rgba(240,237,232,0.12)', background: 'rgba(200,185,154,0.02)' }}>
-          <WoodCross opacity={0.05} />
-          <p className="relative z-10 font-display italic text-[#f0ede8] leading-relaxed max-w-[800px] mx-auto mb-5"
-            style={{ fontSize: 'clamp(1.4rem,4vw,2.4rem)' }}>
-            "Porque onde estiverem dois ou três reunidos em meu nome, ali estou no meio deles."
-          </p>
-          <span className="relative z-10 font-body text-[0.65rem] tracking-[0.25em] uppercase text-[#c8b99a]">Mateus 18:20</span>
-        </div>
-      </ScrollReveal>
+      {/* ── VERSÍCULO ALEATÓRIO ── */}
+      <VersiculoAleatorio />
 
       {/* ── AGENDA ── */}
       <ScrollReveal>
