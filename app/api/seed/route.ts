@@ -17,9 +17,8 @@ export async function POST() {
     data: {
       name:       'Pastor Admin',
       email:      'admin@cccn.com.br',
-      password:   hash,
-      role:       'ADMIN',
-      ministerio: 'GERAL',
+      password: hash,
+      role:     'ADMIN',
     },
   })
 

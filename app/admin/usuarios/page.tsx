@@ -1,18 +1,16 @@
 'use client'
 import { useEffect, useState } from 'react'
 
-type User = { id: string; name: string; email: string; role: string; ministerio: string; createdAt: string }
-const MINISTERIOS = ['GERAL','HOMENS','MULHERES','JOVENS','FAMILIA','CELULAS']
-const LABELS: Record<string,string> = { GERAL:'Geral', HOMENS:'Homens', MULHERES:'Mulheres', JOVENS:'Jovens', FAMILIA:'Família', CELULAS:'Células' }
-const input = "bg-[#0a0a0a] border border-[rgba(240,237,232,0.12)] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 outline-none focus:border-[#c8b99a] transition-colors rounded-sm w-full placeholder:text-[#888480]/40"
-const empty = { name:'', email:'', password:'', role:'LIDER', ministerio:'GERAL' }
+type User = { id: string; name: string; email: string; role: string; createdAt: string }
+const inp = "bg-[#0a0a0a] border border-[rgba(240,237,232,0.12)] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 outline-none focus:border-[#c8b99a] transition-colors rounded-sm w-full placeholder:text-[#888480]/40"
+const empty = { name: '', email: '', password: '', role: 'LIDER' }
 
 export default function AdminUsuarios() {
-  const [users, setUsers]   = useState<User[]>([])
-  const [form, setForm]     = useState<any>(empty)
+  const [users, setUsers]     = useState<User[]>([])
+  const [form, setForm]       = useState<any>(empty)
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [msg, setMsg]       = useState('')
+  const [msg, setMsg]         = useState('')
 
   const load = async () => {
     const r = await fetch('/api/usuarios')
@@ -23,18 +21,15 @@ export default function AdminUsuarios() {
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setMsg('')
-    const r = await fetch('/api/usuarios', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(form) })
-    if (r.ok) {
-      setMsg('Usuário criado com sucesso!'); setForm(empty); setShowForm(false); load()
-    } else {
-      const d = await r.json(); setMsg(d.error || 'Erro ao criar usuário.')
-    }
+    const r = await fetch('/api/usuarios', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+    if (r.ok) { setMsg('Usuário criado com sucesso!'); setForm(empty); setShowForm(false); load() }
+    else { const d = await r.json(); setMsg(d.error || 'Erro ao criar usuário.') }
     setLoading(false)
   }
 
   const del = async (id: string) => {
     if (!confirm('Deletar este usuário?')) return
-    await fetch(`/api/usuarios/${id}`, { method:'DELETE' })
+    await fetch(`/api/usuarios/${id}`, { method: 'DELETE' })
     load()
   }
 
@@ -58,27 +53,21 @@ export default function AdminUsuarios() {
           <h2 className="font-display text-[1.1rem] text-[#f0ede8]">Novo usuário</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { label:'Nome', key:'name', type:'text', placeholder:'Nome completo' },
-              { label:'E-mail', key:'email', type:'email', placeholder:'email@exemplo.com' },
-              { label:'Senha', key:'password', type:'password', placeholder:'Senha de acesso' },
+              { label: 'Nome',  key: 'name',     type: 'text',     placeholder: 'Nome completo' },
+              { label: 'Email', key: 'email',    type: 'email',    placeholder: 'email@exemplo.com' },
+              { label: 'Senha', key: 'password', type: 'password', placeholder: 'Senha de acesso' },
             ].map(f => (
               <div key={f.key} className="flex flex-col gap-1.5">
                 <label className="font-body text-[0.6rem] tracking-[0.2em] uppercase text-[#888480]">{f.label} *</label>
                 <input required type={f.type} placeholder={f.placeholder} value={form[f.key]}
-                  onChange={e => setForm({...form, [f.key]: e.target.value})} className={input}/>
+                  onChange={e => setForm({ ...form, [f.key]: e.target.value })} className={inp}/>
               </div>
             ))}
             <div className="flex flex-col gap-1.5">
               <label className="font-body text-[0.6rem] tracking-[0.2em] uppercase text-[#888480]">Função</label>
-              <select value={form.role} onChange={e => setForm({...form, role: e.target.value})} className={input}>
+              <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className={inp}>
                 <option value="ADMIN">Admin (acesso total)</option>
-                <option value="LIDER">Líder (acesso ao ministério)</option>
-              </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="font-body text-[0.6rem] tracking-[0.2em] uppercase text-[#888480]">Ministério</label>
-              <select value={form.ministerio} onChange={e => setForm({...form, ministerio: e.target.value})} className={input}>
-                {MINISTERIOS.map(m => <option key={m} value={m}>{LABELS[m]}</option>)}
+                <option value="LIDER">Líder</option>
               </select>
             </div>
           </div>
@@ -102,7 +91,7 @@ export default function AdminUsuarios() {
             <div>
               <div className="font-display text-[1rem] text-[#f0ede8] mb-0.5">{u.name}</div>
               <div className="font-body text-[0.75rem] text-[#888480]">
-                {u.email} · {u.role === 'ADMIN' ? '👑 Admin' : '🙋 Líder'} · {LABELS[u.ministerio]}
+                {u.email} · {u.role === 'ADMIN' ? '👑 Admin' : '🙋 Líder'}
               </div>
             </div>
             <button onClick={() => del(u.id)} className="px-3 py-1.5 font-body text-[0.65rem] tracking-widest uppercase text-red-400 border border-[rgba(255,100,100,0.2)] hover:bg-[rgba(255,100,100,0.08)] transition-colors shrink-0">

@@ -6,9 +6,7 @@ import bcrypt from 'bcryptjs'
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: 'jwt' },
-  pages: {
-    signIn: '/admin/login',
-  },
+  pages: { signIn: '/admin/login' },
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -18,39 +16,21 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
-
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        })
-
+        const user = await prisma.user.findUnique({ where: { email: credentials.email } })
         if (!user) return null
-
         const valid = await bcrypt.compare(credentials.password, user.password)
         if (!valid) return null
-
-        return {
-          id:         user.id,
-          name:       user.name,
-          email:      user.email,
-          role:       user.role,
-          ministerio: user.ministerio,
-        }
+        return { id: user.id, name: user.name, email: user.email, role: user.role }
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.role       = (user as any).role
-        token.ministerio = (user as any).ministerio
-      }
+      if (user) token.role = (user as any).role
       return token
     },
     async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).role       = token.role as string
-        (session.user as any).ministerio = token.ministerio as string
-      }
+      if (session.user) (session.user as any).role = token.role as string
       return session
     },
   },
