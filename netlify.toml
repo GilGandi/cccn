@@ -1,5 +1,5 @@
 [build]
-  command = "npm install --legacy-peer-deps && npx prisma generate && npx next build"
+  command = "rm -f middleware.ts && npm install --legacy-peer-deps && npx prisma generate && npx next build"
   publish = ".next"
 
 [build.environment]
