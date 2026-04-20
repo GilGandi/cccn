@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+type Params = Promise<{ id: string }>
+
+export async function PUT(req: NextRequest, { params }: { params: Params }) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  const { id } = await params
   const body = await req.json()
-  const aviso = await prisma.aviso.update({ where: { id: params.id }, data: body })
+  const aviso = await prisma.aviso.update({ where: { id }, data: body })
   return NextResponse.json(aviso)
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-  await prisma.aviso.delete({ where: { id: params.id } })
+export async function DELETE(req: NextRequest, { params }: { params: Params }) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  const { id } = await params
+  await prisma.aviso.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }
