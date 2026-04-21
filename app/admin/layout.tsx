@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 
 export const metadata: Metadata = { title: 'Admin — CCCN' }
