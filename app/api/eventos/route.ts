@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
-  const hoje = new Date()
-  hoje.setHours(0, 0, 0, 0) // início do dia atual
-  const seisM = new Date()
-  seisM.setMonth(seisM.getMonth() + 6)
+export async function GET(req: NextRequest) {
+  const { searchParams } = req.nextUrl
+  const todos = searchParams.get('todos') === 'true'
+
+  const where = todos ? {} : (() => {
+    const hoje = new Date()
+    hoje.setHours(0, 0, 0, 0)
+    const seisM = new Date()
+    seisM.setMonth(seisM.getMonth() + 6)
+    return { data: { gte: hoje, lte: seisM } }
+  })()
 
   const eventos = await prisma.evento.findMany({
-    where: { data: { gte: hoje, lte: seisM } },
+    where,
     include: { categoria: true },
     orderBy: { data: 'asc' },
   })
