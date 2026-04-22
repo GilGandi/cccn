@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import WoodCross from '@/components/WoodCross'
+import { useState } from 'react'
 
 const links = [
   { href: '/admin/agenda',   label: 'Agenda',   icon: (
@@ -23,19 +23,11 @@ const links = [
   )},
 ]
 
-export default function AdminSidebar() {
-  const path = usePathname()
-  const { data: session } = useSession()
-  const userName = session?.user?.name ?? 'Usuário'
-
+function SidebarContent({ path, userName, onNav }: { path: string; userName: string; onNav?: () => void }) {
   return (
-    <aside className="w-60 shrink-0 bg-[#0c0c0c] border-r border-white/[0.06] flex flex-col min-h-screen relative overflow-hidden">
-
-      {/* Cruz de fundo */}
-      <WoodCross opacity={0.04} />
-
+    <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="relative z-10 flex items-center gap-3 px-5 py-5 border-b border-white/[0.06]">
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-white/[0.06]">
         <Image src="/logo.png" alt="CCCN" width={34} height={34} className="rounded-full opacity-90" />
         <div>
           <div className="font-display text-[0.82rem] text-[#f0ede8] leading-tight">CCCN</div>
@@ -44,12 +36,12 @@ export default function AdminSidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="relative z-10 flex flex-col gap-0.5 p-2.5 flex-1 pt-3">
+      <nav className="flex flex-col gap-0.5 p-2.5 flex-1 pt-3">
         <p className="font-body text-[0.55rem] tracking-[0.2em] uppercase text-[#555] px-3 mb-2">Menu</p>
         {links.map((l) => {
           const active = path === l.href || (l.href !== '/admin' && path.startsWith(l.href))
           return (
-            <Link key={l.href} href={l.href}
+            <Link key={l.href} href={l.href} onClick={onNav}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-[0.78rem] font-body transition-all duration-150
                 ${active
                   ? 'bg-[#c8b99a]/10 text-[#c8b99a] font-medium'
@@ -64,7 +56,7 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="relative z-10 p-2.5 border-t border-white/[0.06]">
+      <div className="p-2.5 border-t border-white/[0.06]">
         <div className="flex items-center gap-2.5 px-3 py-2.5 mb-1">
           <div className="w-7 h-7 rounded-full bg-[#c8b99a]/15 flex items-center justify-center text-[#c8b99a] text-[0.65rem] font-display shrink-0">
             {userName.charAt(0).toUpperCase()}
@@ -74,8 +66,7 @@ export default function AdminSidebar() {
             <div className="font-body text-[0.58rem] text-[#555] uppercase tracking-widest">Admin</div>
           </div>
         </div>
-
-        <Link href="/" target="_blank"
+        <Link href="/" target="_blank" onClick={onNav}
           className="flex items-center gap-3 px-3 py-2 rounded-md text-[0.75rem] font-body text-[#555] hover:text-[#f0ede8] hover:bg-white/[0.04] transition-all mb-0.5">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           Ver site
@@ -86,6 +77,60 @@ export default function AdminSidebar() {
           Sair
         </button>
       </div>
-    </aside>
+    </div>
+  )
+}
+
+export default function AdminSidebar() {
+  const path = usePathname()
+  const { data: session } = useSession()
+  const userName = session?.user?.name ?? 'Usuário'
+  const [open, setOpen] = useState(false)
+  const currentLabel = links.find(l => path === l.href || (l.href !== '/admin' && path.startsWith(l.href)))?.label ?? 'Menu'
+
+  return (
+    <>
+      {/* ── Desktop sidebar ── */}
+      <aside className="hidden lg:flex w-60 shrink-0 bg-[#0c0c0c] border-r border-white/[0.06] flex-col min-h-screen">
+        <SidebarContent path={path} userName={userName} />
+      </aside>
+
+      {/* ── Mobile top bar ── */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#0c0c0c]/95 backdrop-blur-sm border-b border-white/[0.06] flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <Image src="/logo.png" alt="CCCN" width={28} height={28} className="rounded-full opacity-90" />
+          <span className="font-body text-[0.78rem] text-[#f0ede8]">{currentLabel}</span>
+        </div>
+        <button onClick={() => setOpen(true)} className="p-2 text-[#888] hover:text-[#f0ede8] transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* ── Mobile drawer ── */}
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          {/* Drawer */}
+          <div className="relative w-64 bg-[#0c0c0c] border-r border-white/[0.06] h-full flex flex-col"
+            style={{ animation: 'slideIn 0.2s ease both' }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+              <span className="font-display text-[0.85rem] text-[#f0ede8]">Menu</span>
+              <button onClick={() => setOpen(false)} className="text-[#555] hover:text-[#f0ede8] transition-colors p-1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <SidebarContent path={path} userName={userName} onNav={() => setOpen(false)} />
+            </div>
+          </div>
+          <style>{`@keyframes slideIn { from { transform: translateX(-100%) } to { transform: translateX(0) } }`}</style>
+        </div>
+      )}
+    </>
   )
 }

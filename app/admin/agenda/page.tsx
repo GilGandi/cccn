@@ -112,9 +112,9 @@ export default function AdminAgenda() {
   const qtdAntigos = eventos.filter(e => new Date(e.data) < umMesAtras).length
 
   return (
-    <div className="max-w-3xl">
+    <div>
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="font-display text-[1.8rem] text-[#f0ede8] leading-tight">Agenda</h1>
           <p className="font-body text-[0.8rem] text-[#555] mt-1">Gerencie cultos e eventos</p>
@@ -160,7 +160,7 @@ export default function AdminAgenda() {
           <button onClick={openNovo} className="mt-3 font-body text-[0.75rem] text-[#c8b99a] hover:underline">Criar o primeiro evento</button>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
           {lista.map(ev => {
             const { dia, mes, dow } = formatData(ev.data)
             const passado = new Date(ev.data) < hoje

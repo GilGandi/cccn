@@ -77,8 +77,8 @@ export default function AdminUsuarios() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="flex items-start justify-between mb-8">
+    <div>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="font-display text-[1.8rem] text-[#f0ede8] leading-tight">Usuários</h1>
           <p className="font-body text-[0.8rem] text-[#555] mt-1">Gerencie quem tem acesso ao painel</p>
@@ -93,7 +93,7 @@ export default function AdminUsuarios() {
         <p className="mb-4 font-body text-[0.8rem] text-red-400 bg-red-500/[0.08] px-4 py-2.5 rounded-lg">{msg}</p>
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
         {users.length === 0 && (
           <p className="text-center py-16 font-body text-[0.85rem] text-[#444]">Nenhum usuário encontrado.</p>
         )}

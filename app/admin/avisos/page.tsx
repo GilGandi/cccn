@@ -47,8 +47,8 @@ export default function AdminAvisos() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="flex items-start justify-between mb-8">
+    <div>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="font-display text-[1.8rem] text-[#f0ede8] leading-tight">Avisos</h1>
           <p className="font-body text-[0.8rem] text-[#555] mt-1">Avisos rápidos exibidos no site</p>

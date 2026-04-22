@@ -50,7 +50,7 @@ export default function AdminGaleria() {
 
   return (
     <div>
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="font-display text-[1.8rem] text-[#f0ede8] leading-tight">Galeria</h1>
           <p className="font-body text-[0.8rem] text-[#555] mt-1">Gerencie as fotos da comunidade</p>
@@ -82,7 +82,7 @@ export default function AdminGaleria() {
           <button onClick={openModal} className="mt-3 font-body text-[0.75rem] text-[#c8b99a] hover:underline">Adicionar a primeira foto</button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
           {filtradas.map(f => (
             <div key={f.id} className="relative group rounded-xl overflow-hidden border border-white/[0.06]" style={{ aspectRatio: '1' }}>
               <Image src={f.url} alt={f.legenda || ''} fill className="object-cover" unoptimized />

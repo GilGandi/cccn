@@ -42,8 +42,8 @@ export default function AdminPalavras() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="flex items-start justify-between mb-8">
+    <div>
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="font-display text-[1.8rem] text-[#f0ede8] leading-tight">Palavras</h1>
           <p className="font-body text-[0.8rem] text-[#555] mt-1">Gerencie mensagens e ensinamentos</p>
@@ -54,7 +54,7 @@ export default function AdminPalavras() {
         </button>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
         {items.length === 0 && (
           <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-xl">
             <p className="font-body text-[0.85rem] text-[#444]">Nenhuma palavra cadastrada.</p>
