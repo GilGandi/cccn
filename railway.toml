@@ -6,5 +6,5 @@ buildCommand = "npm install --legacy-peer-deps && npx prisma generate && npx nex
 nixPkgs = ["nodejs_20"]
 
 [deploy]
-startCommand = "npx prisma migrate deploy && npx next start -p $PORT"
+startCommand = "npx prisma db push && npx next start -p $PORT"
 restartPolicyType = "on_failure"
