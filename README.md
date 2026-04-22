@@ -4,86 +4,63 @@ Site oficial da C.C.C.N Ministério Apostólico do Coração de Deus.
 
 ## Tecnologias
 
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **Vercel** (deploy)
+- **Next.js 15** (App Router)
+- **TypeScript** + **Tailwind CSS**
+- **Prisma + PostgreSQL**
+- **Cloudinary** (upload de imagens)
+- **NextAuth** (autenticação)
+- **Railway** (deploy)
 
 ---
 
-## Como rodar localmente
+## Deploy no Railway
 
-### 1. Pré-requisito: instalar Node.js
-Baixe em: https://nodejs.org (versão LTS)
+### 1. Criar o projeto
+Acesse https://railway.app → **New Project → Deploy from GitHub repo**
 
-### 2. Instalar dependências
+### 2. Adicionar banco de dados
+No painel: **New → Database → Add PostgreSQL**  
+O Railway injeta `DATABASE_URL` automaticamente.
+
+### 3. Variáveis de ambiente
+No serviço: **Variables → New Variable**
+
+| Variável | Valor |
+|---|---|
+| `DATABASE_URL` | Gerado automaticamente |
+| `NEXTAUTH_URL` | `https://SEU-DOMINIO.up.railway.app` |
+| `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
+| `CLOUDINARY_CLOUD_NAME` | Seu cloud name |
+| `CLOUDINARY_API_KEY` | Sua API key |
+| `CLOUDINARY_API_SECRET` | Seu API secret |
+| `NODE_ENV` | `production` |
+
+### 4. Deploy
+O Railway faz automaticamente após configurar as variáveis.
+
+### 5. Criar admin
+```bash
+curl -X POST https://SEU-DOMINIO.up.railway.app/api/seed
+```
+- Email: `admin@cccn.com.br` / Senha: `cccn@2024`
+- **Mude a senha após o primeiro login!**
+
+---
+
+## Rodar localmente
+
 ```bash
 npm install
-```
-
-### 3. Rodar em desenvolvimento
-```bash
+# configure .env.local com as variáveis acima
+npx prisma migrate dev
 npm run dev
-```
-
-Acesse: http://localhost:3000
-
----
-
-## Como publicar na internet (Vercel) — passo a passo
-
-### Opção A — Pelo GitHub (recomendado)
-
-1. Crie uma conta gratuita em https://github.com
-2. Crie um repositório novo (ex: `cccn-site`)
-3. Faça upload dos arquivos deste projeto para o repositório
-4. Acesse https://vercel.com e entre com sua conta GitHub
-5. Clique em **"Add New Project"**
-6. Selecione o repositório `cccn-site`
-7. Clique em **"Deploy"**
-8. Em menos de 2 minutos o site estará no ar com uma URL pública!
-
-### Opção B — Vercel CLI
-
-```bash
-npm install -g vercel
-vercel
-```
-
-Siga as instruções no terminal. O site sobe automaticamente.
-
----
-
-## Estrutura do projeto
-
-```
-cccn-site/
-├── app/
-│   ├── layout.tsx          # Layout raiz (fontes, metadata)
-│   ├── globals.css         # Estilos globais
-│   ├── page.tsx            # Home
-│   ├── historia/page.tsx   # Nossa História
-│   ├── agenda/page.tsx     # Agenda
-│   ├── palavras/page.tsx   # Palavras
-│   ├── doacoes/page.tsx    # Doações
-│   └── contato/page.tsx    # Contato
-├── components/
-│   ├── Navbar.tsx          # Navegação (responsiva)
-│   ├── Footer.tsx          # Rodapé com dados oficiais
-│   ├── WoodCross.tsx       # Cruz de madeira SVG (fundo)
-│   ├── ChurchLogo.tsx      # Logo da igreja SVG
-│   ├── ScrollReveal.tsx    # Animação de entrada por scroll
-│   └── CopyPix.tsx         # Botão copiar chave Pix
-└── public/                 # Imagens e assets estáticos
 ```
 
 ---
 
 ## Dados da Igreja
 
-- **Razão Social:** Comunidade Cristã de Campos Novos — C.C.C.N Ministério Apostólico do Coração de Deus
 - **CNPJ:** 18.702.714/0001-07
-- **Endereço:** Rua João Gonçalves de Araújo, 829 — Bairro Aparecida, Campos Novos – SC, CEP 89620-000
+- **Endereço:** Rua João Gonçalves de Araújo, 829 — Bairro Aparecida, Campos Novos – SC
 - **Telefone:** (49) 9152-9414
 - **Instagram:** @cccnchurch
-- **Cultos:** Domingos das 19h às 21h
