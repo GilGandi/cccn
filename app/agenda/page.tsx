@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 600
 
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -15,7 +15,7 @@ export default async function Agenda() {
   const [eventos, categorias] = await Promise.all([
     prisma.evento.findMany({
       where: { data: { gte: hoje, lte: seisM } },
-      include: { categoria: true },
+      include: { categoria: { select: { id: true, nome: true, cor: true, fotoUrl: true } } },
       orderBy: { data: 'asc' },
     }),
     prisma.categoria.findMany({ orderBy: { nome: 'asc' } }),

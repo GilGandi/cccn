@@ -2,36 +2,18 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
+import Modal from '@/components/admin/Modal'
 
 type Categoria = { id: string; nome: string; cor: string }
 type Evento = {
   id: string; titulo: string; descricao?: string
-  data: string; horario: string; destaque: boolean
+  data: string; horario: string
   categoriaId?: string; categoria?: Categoria
 }
 
-const emptyForm = { titulo: '', descricao: '', data: '', horario: '', categoriaId: '', destaque: false }
-
-const inp = "w-full bg-[#111] border border-white/[0.08] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 rounded-md outline-none focus:border-[#c8b99a]/50 transition-colors placeholder:text-[#444]"
+const emptyForm = { titulo: '', descricao: '', data: '', horario: '', categoriaId: '' }
+const inp = "w-full bg-[#0f0f0f] border border-white/[0.08] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 rounded-md outline-none focus:border-[#c8b99a]/50 transition-colors placeholder:text-[#444]"
 const lbl = "block font-body text-[0.6rem] tracking-[0.18em] uppercase text-[#666] mb-1.5"
-
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-      <div className="relative z-10 w-full max-w-lg bg-[#111] border border-white/[0.08] rounded-xl shadow-2xl"
-        onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
-          <h2 className="font-display text-[1rem] text-[#f0ede8]">{title}</h2>
-          <button onClick={onClose} className="text-[#555] hover:text-[#f0ede8] transition-colors">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-        <div className="p-6">{children}</div>
-      </div>
-    </div>
-  )
-}
 
 function Badge({ label, cor }: { label: string; cor: string }) {
   return (
@@ -51,16 +33,18 @@ function formatData(iso: string) {
 }
 
 export default function AdminAgenda() {
-  const [eventos, setEventos]     = useState<Evento[]>([])
-  const [cats, setCats]           = useState<Categoria[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [modal, setModal]         = useState<'novo' | 'editar' | 'cat' | null>(null)
-  const [form, setForm]           = useState<any>(emptyForm)
-  const [editId, setEditId]       = useState<string | null>(null)
-  const [catForm, setCatForm]     = useState({ nome: '', cor: '#c8b99a' })
-  const [saving, setSaving]       = useState(false)
-  const [msg, setMsg]             = useState('')
-  const [filtro, setFiltro]       = useState<'proximos' | 'todos'>('proximos')
+  const [eventos, setEventos]       = useState<Evento[]>([])
+  const [cats, setCats]             = useState<Categoria[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [modal, setModal]           = useState<'novo' | 'editar' | 'cat' | 'manutencao' | null>(null)
+  const [form, setForm]             = useState<any>(emptyForm)
+  const [editId, setEditId]         = useState<string | null>(null)
+  const [catForm, setCatForm]       = useState({ nome: '', cor: '#c8b99a' })
+  const [saving, setSaving]         = useState(false)
+  const [msg, setMsg]               = useState('')
+  const [filtro, setFiltro]         = useState<'proximos' | 'todos'>('proximos')
+  const [mantMsg, setMantMsg]       = useState('')
+  const [mantLoading, setMantLoading] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -72,18 +56,14 @@ export default function AdminAgenda() {
   }
   useEffect(() => { load() }, [])
 
-  const hoje = new Date(); hoje.setHours(0,0,0,0)
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
   const lista = filtro === 'proximos'
     ? eventos.filter(e => new Date(e.data) >= hoje)
     : eventos
 
   const openNovo = () => { setForm(emptyForm); setEditId(null); setMsg(''); setModal('novo') }
   const openEditar = (e: Evento) => {
-    setForm({
-      titulo: e.titulo, descricao: e.descricao || '',
-      data: e.data.slice(0, 10), horario: e.horario,
-      categoriaId: e.categoriaId || '', destaque: e.destaque,
-    })
+    setForm({ titulo: e.titulo, descricao: e.descricao || '', data: e.data.slice(0, 10), horario: e.horario, categoriaId: e.categoriaId || '' })
     setEditId(e.id); setMsg(''); setModal('editar')
   }
 
@@ -108,16 +88,28 @@ export default function AdminAgenda() {
   }
 
   const saveCat = async () => {
-    if (!catForm.nome) { setMsg('Informe o nome da categoria.'); return }
+    if (!catForm.nome) { setMsg('Informe o nome.'); return }
     setSaving(true); setMsg('')
-    const r = await fetch('/api/categorias', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(catForm),
-    })
+    const r = await fetch('/api/categorias', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(catForm) })
     if (r.ok) { setModal(null); setCatForm({ nome: '', cor: '#c8b99a' }); load() }
-    else setMsg('Erro ao criar categoria.')
+    else { const d = await r.json(); setMsg(d.error || 'Erro ao criar.') }
     setSaving(false)
   }
+
+  const runManutencao = async () => {
+    setMantLoading(true); setMantMsg('')
+    const r = await fetch('/api/eventos/manutencao', { method: 'DELETE' })
+    const d = await r.json()
+    setMantMsg(d.removidos === 0
+      ? 'Nenhum evento antigo encontrado.'
+      : `${d.removidos} evento${d.removidos > 1 ? 's removidos' : ' removido'} com sucesso.`)
+    setMantLoading(false)
+    load()
+  }
+
+  // Conta eventos mais antigos que 1 mês para mostrar no botão
+  const umMesAtras = new Date(); umMesAtras.setMonth(umMesAtras.getMonth() - 1)
+  const qtdAntigos = eventos.filter(e => new Date(e.data) < umMesAtras).length
 
   return (
     <div className="max-w-3xl">
@@ -128,6 +120,13 @@ export default function AdminAgenda() {
           <p className="font-body text-[0.8rem] text-[#555] mt-1">Gerencie cultos e eventos</p>
         </div>
         <div className="flex gap-2">
+          {qtdAntigos > 0 && (
+            <button onClick={() => { setMantMsg(''); setModal('manutencao') }}
+              className="px-3 py-2 border border-orange-500/30 text-orange-400 font-body text-[0.68rem] tracking-widest uppercase rounded-md hover:bg-orange-500/[0.08] transition-all flex items-center gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4h6v2"/></svg>
+              Limpar ({qtdAntigos})
+            </button>
+          )}
           <button onClick={() => { setMsg(''); setModal('cat') }}
             className="px-4 py-2 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] hover:border-white/20 transition-all">
             + Categoria
@@ -141,7 +140,7 @@ export default function AdminAgenda() {
 
       {/* Filtro */}
       <div className="flex gap-1 mb-6 bg-[#111] border border-white/[0.06] rounded-lg p-1 w-fit">
-        {(['proximos','todos'] as const).map(f => (
+        {(['proximos', 'todos'] as const).map(f => (
           <button key={f} onClick={() => setFiltro(f)}
             className={`px-4 py-1.5 rounded-md font-body text-[0.72rem] tracking-widest uppercase transition-all
               ${filtro === f ? 'bg-[#1a1a1a] text-[#f0ede8] shadow-sm' : 'text-[#555] hover:text-[#888]'}`}>
@@ -169,24 +168,18 @@ export default function AdminAgenda() {
               <div key={ev.id}
                 className={`flex items-center gap-4 p-4 rounded-xl border transition-all group
                   ${passado ? 'border-white/[0.04] bg-[#0e0e0e] opacity-60' : 'border-white/[0.07] bg-[#111] hover:border-white/[0.12]'}`}>
-                {/* Data */}
                 <div className="shrink-0 w-12 text-center">
                   <div className="font-body text-[0.55rem] tracking-widest uppercase text-[#c8b99a]">{dow}</div>
                   <div className="font-display text-[1.5rem] text-[#f0ede8] leading-none">{dia}</div>
                   <div className="font-body text-[0.6rem] tracking-widest uppercase text-[#555]">{mes}</div>
                 </div>
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-body text-[0.9rem] text-[#f0ede8] truncate">{ev.titulo}</span>
-                    {ev.destaque && (
-                      <span className="font-body text-[0.55rem] tracking-widest uppercase px-1.5 py-0.5 rounded bg-[#c8b99a]/10 text-[#c8b99a]">Destaque</span>
-                    )}
                     {ev.categoria && <Badge label={ev.categoria.nome} cor={ev.categoria.cor} />}
                   </div>
                   <div className="font-body text-[0.75rem] text-[#555] mt-0.5">{ev.horario}{ev.descricao ? ` · ${ev.descricao}` : ''}</div>
                 </div>
-                {/* Ações */}
                 <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => openEditar(ev)}
                     className="p-2 rounded-lg text-[#555] hover:text-[#f0ede8] hover:bg-white/[0.06] transition-all">
@@ -209,7 +202,7 @@ export default function AdminAgenda() {
           <div className="flex flex-col gap-4">
             <div>
               <label className={lbl}>Título *</label>
-              <input className={inp} placeholder="Ex: Culto de Domingo" value={form.titulo}
+              <input className={inp} placeholder="Ex: Culto de Domingo" value={form.titulo} autoFocus
                 onChange={e => setForm({ ...form, titulo: e.target.value })} />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -237,13 +230,6 @@ export default function AdminAgenda() {
               <textarea className={inp + ' resize-none'} rows={2} placeholder="Detalhes opcionais..."
                 value={form.descricao} onChange={e => setForm({ ...form, descricao: e.target.value })} />
             </div>
-            <label className="flex items-center gap-2.5 cursor-pointer select-none">
-              <div className={`w-9 h-5 rounded-full transition-colors relative ${form.destaque ? 'bg-[#c8b99a]' : 'bg-white/10'}`}
-                onClick={() => setForm({ ...form, destaque: !form.destaque })}>
-                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.destaque ? 'translate-x-4' : 'translate-x-0.5'}`} />
-              </div>
-              <span className="font-body text-[0.78rem] text-[#888]">Marcar como destaque</span>
-            </label>
             {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
             <div className="flex gap-2 pt-1">
               <button onClick={saveEvento} disabled={saving}
@@ -261,11 +247,11 @@ export default function AdminAgenda() {
 
       {/* Modal Categoria */}
       {modal === 'cat' && (
-        <Modal title="Nova categoria" onClose={() => setModal(null)}>
+        <Modal title="Nova categoria" onClose={() => setModal(null)} size="sm">
           <div className="flex flex-col gap-4">
             <div>
               <label className={lbl}>Nome *</label>
-              <input className={inp} placeholder="Ex: Culto, Jovens, Kids..." value={catForm.nome}
+              <input className={inp} placeholder="Ex: Culto, Jovens, Kids..." value={catForm.nome} autoFocus
                 onChange={e => setCatForm({ ...catForm, nome: e.target.value })} />
             </div>
             <div>
@@ -288,6 +274,43 @@ export default function AdminAgenda() {
                 Cancelar
               </button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Manutenção */}
+      {modal === 'manutencao' && (
+        <Modal title="Limpeza da agenda" onClose={() => setModal(null)} size="sm">
+          <div className="flex flex-col gap-4">
+            <div className="p-4 rounded-lg bg-orange-500/[0.06] border border-orange-500/20">
+              <p className="font-body text-[0.85rem] text-[#f0ede8] leading-relaxed">
+                Serão removidos <strong className="text-orange-400">{qtdAntigos} evento{qtdAntigos > 1 ? 's' : ''}</strong> com data anterior a 1 mês atrás.
+              </p>
+              <p className="font-body text-[0.75rem] text-[#888] mt-2">Esta ação não pode ser desfeita.</p>
+            </div>
+            {mantMsg && (
+              <p className={`font-body text-[0.8rem] px-3 py-2 rounded-lg ${mantMsg.includes('removido') ? 'text-green-400 bg-green-500/[0.08]' : 'text-[#888] bg-white/[0.04]'}`}>
+                {mantMsg}
+              </p>
+            )}
+            {!mantMsg && (
+              <div className="flex gap-2 pt-1">
+                <button onClick={runManutencao} disabled={mantLoading}
+                  className="flex-1 py-2.5 bg-orange-500/80 text-white font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-orange-500 transition-all disabled:opacity-50">
+                  {mantLoading ? 'Removendo...' : 'Confirmar limpeza'}
+                </button>
+                <button onClick={() => setModal(null)}
+                  className="px-5 py-2.5 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] transition-all">
+                  Cancelar
+                </button>
+              </div>
+            )}
+            {mantMsg && (
+              <button onClick={() => setModal(null)}
+                className="w-full py-2.5 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] transition-all">
+                Fechar
+              </button>
+            )}
           </div>
         </Modal>
       )}

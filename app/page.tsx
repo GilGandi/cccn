@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic'
-
 import Image from 'next/image'
 import Navbar from '@/components/Navbar'
 import { prisma } from '@/lib/prisma'
@@ -9,8 +7,12 @@ import ScrollReveal from '@/components/ScrollReveal'
 import CopyPix from '@/components/CopyPix'
 import VersiculoAleatorio from '@/components/VersiculoAleatorio'
 
+// Revalida a cada 10 minutos — sem force-dynamic, página é cacheada e servida de borda
+export const revalidate = 600
+
 export default async function Home() {
   const hoje = new Date()
+  hoje.setHours(0, 0, 0, 0)
   const seisM = new Date()
   seisM.setMonth(seisM.getMonth() + 6)
 
@@ -18,11 +20,12 @@ export default async function Home() {
   try {
     agenda = await prisma.evento.findMany({
       where: { data: { gte: hoje, lte: seisM } },
-      include: { categoria: true },
+      include: { categoria: { select: { nome: true, cor: true } } },
       orderBy: { data: 'asc' },
       take: 6,
     })
   } catch {}
+
   return (
     <main className="bg-[#0a0a0a] text-[#f0ede8]">
       <Navbar />
@@ -102,7 +105,7 @@ export default async function Home() {
         </ScrollReveal>
       </div>
 
-      {/* ── VERSÍCULO ALEATÓRIO ── */}
+      {/* ── VERSÍCULO ── */}
       <VersiculoAleatorio />
 
       {/* ── AGENDA ── */}
@@ -131,11 +134,11 @@ export default async function Home() {
               )}
               {agenda.map((item: any) => {
                 const data = new Date(item.data)
-                const dia = data.getDate().toString().padStart(2, '0')
+                const dia = data.getUTCDate().toString().padStart(2, '0')
                 const cor = item.categoria?.cor || '#c8b99a'
                 const borda = item.categoria ? cor + '55' : 'rgba(240,237,232,0.25)'
                 return (
-                  <div key={item.id} className="relative p-6 bg-[#0a0a0a] active:bg-[rgba(200,185,154,0.06)] transition-colors">
+                  <div key={item.id} className="relative p-6 bg-[#0a0a0a] transition-colors">
                     <span className="inline-block font-body text-[0.58rem] tracking-[0.2em] uppercase px-2.5 py-1 mb-4"
                       style={{ border: `1px solid ${borda}`, color: cor }}>
                       {item.categoria?.nome || 'Evento'}
@@ -143,7 +146,7 @@ export default async function Home() {
                     <div className="absolute top-6 right-6 font-body text-[0.62rem] text-[#888480]">{item.horario}</div>
                     <div className="font-display text-[2rem] text-[#c8b99a] leading-none mb-1">{dia}</div>
                     <div className="font-body text-[0.6rem] tracking-[0.2em] uppercase text-[#888480] mb-3">
-                      {data.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', weekday: 'short' })}
+                      {data.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', weekday: 'short', timeZone: 'UTC' })}
                     </div>
                     <div className="font-display text-[1.2rem] text-[#f0ede8] mb-1">{item.titulo}</div>
                     <p className="font-body font-light text-[0.8rem] text-[#888480] leading-relaxed">{item.descricao}</p>
@@ -155,9 +158,9 @@ export default async function Home() {
         </div>
       </ScrollReveal>
 
-      {/* ── MAPA — zoom 17 com marcador centralizado ── */}
+      {/* ── MAPA ── */}
       <ScrollReveal>
-        <div style={{ borderTop: '1px solid rgba(240,237,232,0.12)' }} className="grid grid-cols-1 md:grid-cols-2" >
+        <div style={{ borderTop: '1px solid rgba(240,237,232,0.12)' }} className="grid grid-cols-1 md:grid-cols-2">
           <div className="relative overflow-hidden px-6 sm:px-10 lg:px-16 py-14 flex flex-col justify-center gap-7">
             <WoodCross opacity={0.04} />
             <div className="relative z-10">
@@ -189,7 +192,7 @@ export default async function Home() {
               </a>
             </div>
           </div>
-          {/* Map — zoom 18, satellite hybrid so the building is visible */}
+          {/* iframe com loading=lazy — não bloqueia o carregamento inicial */}
           <div className="min-h-[360px] md:min-h-0" style={{ borderTop: '1px solid rgba(240,237,232,0.12)' }}>
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d900!2d-51.2109056!3d-27.3975733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94e17b01bab8202b%3A0x2524dd437a651fe5!2sComunidade%20Crist%C3%A3%20de%20Campos%20Novos!5e0!3m2!1spt-BR!2sbr!4v1681000000000!5m2!1spt-BR!2sbr"

@@ -14,15 +14,21 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   const body = await req.json()
   const { name, email, password } = body
 
-  const target = await prisma.user.findUnique({ where: { id } })
-  if (!target)
-    return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
+  if (!name?.trim()) return NextResponse.json({ error: 'Nome é obrigatório.' }, { status: 400 })
+  if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return NextResponse.json({ error: 'E-mail inválido.' }, { status: 400 })
+  if (password && password.length < 8)
+    return NextResponse.json({ error: 'Senha deve ter no mínimo 8 caracteres.' }, { status: 400 })
 
-  const data: any = {}
-  if (name)  data.name  = name
-  if (email) data.email = email
-  if (password && password.trim() !== '')
-    data.password = await bcrypt.hash(password, 12)
+  const target = await prisma.user.findUnique({ where: { id } })
+  if (!target) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 })
+
+  // Verifica conflito de email (excluindo o próprio usuário)
+  const conflict = await prisma.user.findFirst({ where: { email: email.toLowerCase(), NOT: { id } } })
+  if (conflict) return NextResponse.json({ error: 'E-mail já está em uso.' }, { status: 400 })
+
+  const data: any = { name: name.trim(), email: email.toLowerCase() }
+  if (password?.trim()) data.password = await bcrypt.hash(password, 12)
 
   const updated = await prisma.user.update({ where: { id }, data })
   return NextResponse.json({ ok: true, name: updated.name, email: updated.email })
@@ -36,8 +42,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Params }) {
   const { id } = await params
 
   const target = await prisma.user.findUnique({ where: { id } })
-  if (!target)
-    return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
+  if (!target) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 })
   if (target.role === 'ADMIN')
     return NextResponse.json({ error: 'Não é possível deletar o administrador.' }, { status: 403 })
 

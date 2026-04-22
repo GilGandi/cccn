@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
+import WoodCross from '@/components/WoodCross'
 
 const links = [
   { href: '/admin/agenda',   label: 'Agenda',   icon: (
@@ -28,10 +29,13 @@ export default function AdminSidebar() {
   const userName = session?.user?.name ?? 'Usuário'
 
   return (
-    <aside className="w-60 shrink-0 bg-[#0c0c0c] border-r border-white/[0.06] flex flex-col min-h-screen">
+    <aside className="w-60 shrink-0 bg-[#0c0c0c] border-r border-white/[0.06] flex flex-col min-h-screen relative overflow-hidden">
+
+      {/* Cruz de fundo */}
+      <WoodCross opacity={0.04} />
 
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-white/[0.06]">
+      <div className="relative z-10 flex items-center gap-3 px-5 py-5 border-b border-white/[0.06]">
         <Image src="/logo.png" alt="CCCN" width={34} height={34} className="rounded-full opacity-90" />
         <div>
           <div className="font-display text-[0.82rem] text-[#f0ede8] leading-tight">CCCN</div>
@@ -40,7 +44,7 @@ export default function AdminSidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex flex-col gap-0.5 p-2.5 flex-1 pt-3">
+      <nav className="relative z-10 flex flex-col gap-0.5 p-2.5 flex-1 pt-3">
         <p className="font-body text-[0.55rem] tracking-[0.2em] uppercase text-[#555] px-3 mb-2">Menu</p>
         {links.map((l) => {
           const active = path === l.href || (l.href !== '/admin' && path.startsWith(l.href))
@@ -60,8 +64,7 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-2.5 border-t border-white/[0.06]">
-        {/* User info */}
+      <div className="relative z-10 p-2.5 border-t border-white/[0.06]">
         <div className="flex items-center gap-2.5 px-3 py-2.5 mb-1">
           <div className="w-7 h-7 rounded-full bg-[#c8b99a]/15 flex items-center justify-center text-[#c8b99a] text-[0.65rem] font-display shrink-0">
             {userName.charAt(0).toUpperCase()}

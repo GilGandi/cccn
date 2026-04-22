@@ -1,3 +1,4 @@
+export const revalidate = false
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import WoodCross from '@/components/WoodCross'
