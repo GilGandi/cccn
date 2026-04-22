@@ -1,40 +1,296 @@
+'use client'
 export const dynamic = 'force-dynamic'
 
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
-import WoodCross from '@/components/WoodCross'
-import AgendaFiltro from '@/components/AgendaFiltro'
-import { prisma } from '@/lib/prisma'
+import { useEffect, useState } from 'react'
 
-export default async function Agenda() {
-  const hoje = new Date()
-  hoje.setHours(0, 0, 0, 0)
-  const seisM = new Date()
-  seisM.setMonth(seisM.getMonth() + 6)
+type Categoria = { id: string; nome: string; cor: string }
+type Evento = {
+  id: string; titulo: string; descricao?: string
+  data: string; horario: string; destaque: boolean
+  categoriaId?: string; categoria?: Categoria
+}
 
-  const [eventos, categorias] = await Promise.all([
-    prisma.evento.findMany({
-      where: { data: { gte: hoje, lte: seisM } },
-      include: { categoria: true },
-      orderBy: { data: 'asc' },
-    }),
-    prisma.categoria.findMany({ orderBy: { nome: 'asc' } }),
-  ])
+const emptyForm = { titulo: '', descricao: '', data: '', horario: '', categoriaId: '', destaque: false }
+
+const inp = "w-full bg-[#111] border border-white/[0.08] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 rounded-md outline-none focus:border-[#c8b99a]/50 transition-colors placeholder:text-[#444]"
+const lbl = "block font-body text-[0.6rem] tracking-[0.18em] uppercase text-[#666] mb-1.5"
+
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div className="relative z-10 w-full max-w-lg bg-[#111] border border-white/[0.08] rounded-xl shadow-2xl"
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+          <h2 className="font-display text-[1rem] text-[#f0ede8]">{title}</h2>
+          <button onClick={onClose} className="text-[#555] hover:text-[#f0ede8] transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div className="p-6">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function Badge({ label, cor }: { label: string; cor: string }) {
+  return (
+    <span className="inline-block font-body text-[0.6rem] tracking-widest uppercase px-2 py-0.5 rounded-full"
+      style={{ background: cor + '22', color: cor, border: `1px solid ${cor}44` }}>
+      {label}
+    </span>
+  )
+}
+
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+const DIAS  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
+
+function formatData(iso: string) {
+  const d = new Date(iso)
+  return { dia: d.getUTCDate(), mes: MESES[d.getUTCMonth()], dow: DIAS[d.getUTCDay()] }
+}
+
+export default function AdminAgenda() {
+  const [eventos, setEventos]     = useState<Evento[]>([])
+  const [cats, setCats]           = useState<Categoria[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [modal, setModal]         = useState<'novo' | 'editar' | 'cat' | null>(null)
+  const [form, setForm]           = useState<any>(emptyForm)
+  const [editId, setEditId]       = useState<string | null>(null)
+  const [catForm, setCatForm]     = useState({ nome: '', cor: '#c8b99a' })
+  const [saving, setSaving]       = useState(false)
+  const [msg, setMsg]             = useState('')
+  const [filtro, setFiltro]       = useState<'proximos' | 'todos'>('proximos')
+
+  const load = async () => {
+    setLoading(true)
+    const [ev, ct] = await Promise.all([
+      fetch('/api/eventos?todos=true').then(r => r.json()),
+      fetch('/api/categorias').then(r => r.json()),
+    ])
+    setEventos(ev); setCats(ct); setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  const hoje = new Date(); hoje.setHours(0,0,0,0)
+  const lista = filtro === 'proximos'
+    ? eventos.filter(e => new Date(e.data) >= hoje)
+    : eventos
+
+  const openNovo = () => { setForm(emptyForm); setEditId(null); setMsg(''); setModal('novo') }
+  const openEditar = (e: Evento) => {
+    setForm({
+      titulo: e.titulo, descricao: e.descricao || '',
+      data: e.data.slice(0, 10), horario: e.horario,
+      categoriaId: e.categoriaId || '', destaque: e.destaque,
+    })
+    setEditId(e.id); setMsg(''); setModal('editar')
+  }
+
+  const saveEvento = async () => {
+    if (!form.titulo || !form.data || !form.horario) { setMsg('Preencha título, data e horário.'); return }
+    setSaving(true); setMsg('')
+    const method = editId ? 'PUT' : 'POST'
+    const url    = editId ? `/api/eventos/${editId}` : '/api/eventos'
+    const r = await fetch(url, {
+      method, headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, categoriaId: form.categoriaId || null }),
+    })
+    if (r.ok) { setModal(null); load() }
+    else { const d = await r.json(); setMsg(d.error || 'Erro ao salvar.') }
+    setSaving(false)
+  }
+
+  const deleteEvento = async (id: string) => {
+    if (!confirm('Excluir este evento?')) return
+    await fetch(`/api/eventos/${id}`, { method: 'DELETE' })
+    load()
+  }
+
+  const saveCat = async () => {
+    if (!catForm.nome) { setMsg('Informe o nome da categoria.'); return }
+    setSaving(true); setMsg('')
+    const r = await fetch('/api/categorias', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(catForm),
+    })
+    if (r.ok) { setModal(null); setCatForm({ nome: '', cor: '#c8b99a' }); load() }
+    else setMsg('Erro ao criar categoria.')
+    setSaving(false)
+  }
 
   return (
-    <main className="bg-[#0a0a0a] text-[#f0ede8]">
-      <Navbar />
-      <div style={{ borderBottom: '1px solid rgba(240,237,232,0.12)' }} className="relative overflow-hidden pt-40 pb-16 px-6 sm:px-10 lg:px-16 max-w-[1200px] mx-auto">
-        <WoodCross opacity={0.03} />
-        <div className="relative z-10">
-          <span className="font-body text-[0.62rem] tracking-[0.3em] uppercase text-[#c8b99a] mb-4 block">Calendário</span>
-          <h1 className="font-display font-normal leading-[1.1] text-[#f0ede8]" style={{ fontSize: 'clamp(2.5rem,5vw,4rem)' }}>
-            Agenda de <em style={{ color: '#c8b99a' }}>cultos e eventos</em>
-          </h1>
+    <div className="max-w-3xl">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h1 className="font-display text-[1.8rem] text-[#f0ede8] leading-tight">Agenda</h1>
+          <p className="font-body text-[0.8rem] text-[#555] mt-1">Gerencie cultos e eventos</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => { setMsg(''); setModal('cat') }}
+            className="px-4 py-2 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] hover:border-white/20 transition-all">
+            + Categoria
+          </button>
+          <button onClick={openNovo}
+            className="px-4 py-2 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all">
+            + Evento
+          </button>
         </div>
       </div>
-      <AgendaFiltro eventos={JSON.parse(JSON.stringify(eventos))} categorias={JSON.parse(JSON.stringify(categorias))} />
-      <Footer />
-    </main>
+
+      {/* Filtro */}
+      <div className="flex gap-1 mb-6 bg-[#111] border border-white/[0.06] rounded-lg p-1 w-fit">
+        {(['proximos','todos'] as const).map(f => (
+          <button key={f} onClick={() => setFiltro(f)}
+            className={`px-4 py-1.5 rounded-md font-body text-[0.72rem] tracking-widest uppercase transition-all
+              ${filtro === f ? 'bg-[#1a1a1a] text-[#f0ede8] shadow-sm' : 'text-[#555] hover:text-[#888]'}`}>
+            {f === 'proximos' ? 'Próximos' : 'Todos'}
+          </button>
+        ))}
+      </div>
+
+      {/* Lista */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-6 h-6 border-2 border-[#c8b99a]/30 border-t-[#c8b99a] rounded-full animate-spin" />
+        </div>
+      ) : lista.length === 0 ? (
+        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-xl">
+          <p className="font-body text-[0.85rem] text-[#444]">Nenhum evento encontrado.</p>
+          <button onClick={openNovo} className="mt-3 font-body text-[0.75rem] text-[#c8b99a] hover:underline">Criar o primeiro evento</button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {lista.map(ev => {
+            const { dia, mes, dow } = formatData(ev.data)
+            const passado = new Date(ev.data) < hoje
+            return (
+              <div key={ev.id}
+                className={`flex items-center gap-4 p-4 rounded-xl border transition-all group
+                  ${passado ? 'border-white/[0.04] bg-[#0e0e0e] opacity-60' : 'border-white/[0.07] bg-[#111] hover:border-white/[0.12]'}`}>
+                {/* Data */}
+                <div className="shrink-0 w-12 text-center">
+                  <div className="font-body text-[0.55rem] tracking-widest uppercase text-[#c8b99a]">{dow}</div>
+                  <div className="font-display text-[1.5rem] text-[#f0ede8] leading-none">{dia}</div>
+                  <div className="font-body text-[0.6rem] tracking-widest uppercase text-[#555]">{mes}</div>
+                </div>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-body text-[0.9rem] text-[#f0ede8] truncate">{ev.titulo}</span>
+                    {ev.destaque && (
+                      <span className="font-body text-[0.55rem] tracking-widest uppercase px-1.5 py-0.5 rounded bg-[#c8b99a]/10 text-[#c8b99a]">Destaque</span>
+                    )}
+                    {ev.categoria && <Badge label={ev.categoria.nome} cor={ev.categoria.cor} />}
+                  </div>
+                  <div className="font-body text-[0.75rem] text-[#555] mt-0.5">{ev.horario}{ev.descricao ? ` · ${ev.descricao}` : ''}</div>
+                </div>
+                {/* Ações */}
+                <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => openEditar(ev)}
+                    className="p-2 rounded-lg text-[#555] hover:text-[#f0ede8] hover:bg-white/[0.06] transition-all">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button onClick={() => deleteEvento(ev.id)}
+                    className="p-2 rounded-lg text-[#555] hover:text-red-400 hover:bg-red-500/[0.08] transition-all">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Modal Evento */}
+      {(modal === 'novo' || modal === 'editar') && (
+        <Modal title={modal === 'novo' ? 'Novo evento' : 'Editar evento'} onClose={() => setModal(null)}>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className={lbl}>Título *</label>
+              <input className={inp} placeholder="Ex: Culto de Domingo" value={form.titulo}
+                onChange={e => setForm({ ...form, titulo: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={lbl}>Data *</label>
+                <input type="date" className={inp} value={form.data}
+                  onChange={e => setForm({ ...form, data: e.target.value })} />
+              </div>
+              <div>
+                <label className={lbl}>Horário *</label>
+                <input type="time" className={inp} value={form.horario}
+                  onChange={e => setForm({ ...form, horario: e.target.value })} />
+              </div>
+            </div>
+            <div>
+              <label className={lbl}>Categoria</label>
+              <select className={inp} value={form.categoriaId}
+                onChange={e => setForm({ ...form, categoriaId: e.target.value })}>
+                <option value="">Sem categoria</option>
+                {cats.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={lbl}>Descrição</label>
+              <textarea className={inp + ' resize-none'} rows={2} placeholder="Detalhes opcionais..."
+                value={form.descricao} onChange={e => setForm({ ...form, descricao: e.target.value })} />
+            </div>
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <div className={`w-9 h-5 rounded-full transition-colors relative ${form.destaque ? 'bg-[#c8b99a]' : 'bg-white/10'}`}
+                onClick={() => setForm({ ...form, destaque: !form.destaque })}>
+                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.destaque ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              </div>
+              <span className="font-body text-[0.78rem] text-[#888]">Marcar como destaque</span>
+            </label>
+            {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
+            <div className="flex gap-2 pt-1">
+              <button onClick={saveEvento} disabled={saving}
+                className="flex-1 py-2.5 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all disabled:opacity-50">
+                {saving ? 'Salvando...' : modal === 'novo' ? 'Criar evento' : 'Salvar alterações'}
+              </button>
+              <button onClick={() => setModal(null)}
+                className="px-5 py-2.5 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] transition-all">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Categoria */}
+      {modal === 'cat' && (
+        <Modal title="Nova categoria" onClose={() => setModal(null)}>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className={lbl}>Nome *</label>
+              <input className={inp} placeholder="Ex: Culto, Jovens, Kids..." value={catForm.nome}
+                onChange={e => setCatForm({ ...catForm, nome: e.target.value })} />
+            </div>
+            <div>
+              <label className={lbl}>Cor</label>
+              <div className="flex items-center gap-3">
+                <input type="color" value={catForm.cor}
+                  onChange={e => setCatForm({ ...catForm, cor: e.target.value })}
+                  className="w-10 h-10 rounded-md border border-white/[0.08] bg-[#111] cursor-pointer p-1" />
+                <span className="font-body text-[0.78rem] text-[#555]">{catForm.cor}</span>
+              </div>
+            </div>
+            {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
+            <div className="flex gap-2 pt-1">
+              <button onClick={saveCat} disabled={saving}
+                className="flex-1 py-2.5 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all disabled:opacity-50">
+                {saving ? 'Criando...' : 'Criar categoria'}
+              </button>
+              <button onClick={() => setModal(null)}
+                className="px-5 py-2.5 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] transition-all">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
   )
 }
