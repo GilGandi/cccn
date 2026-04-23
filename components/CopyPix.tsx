@@ -1,10 +1,10 @@
 'use client'
 import { useState } from 'react'
 
-export default function CopyPix() {
+export default function CopyPix({ chave = '18.702.714/0001-07' }: { chave?: string }) {
   const [copied, setCopied] = useState(false)
   const handleCopy = () => {
-    navigator.clipboard.writeText('18.702.714/0001-07').then(() => {
+    navigator.clipboard.writeText(chave).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
     })

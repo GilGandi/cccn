@@ -8,6 +8,7 @@ const links = [
   { href: '/historia', label: 'Nossa História' },
   { href: '/agenda',   label: 'Agenda' },
   { href: '/palavras', label: 'Palavras' },
+  { href: '/louvor',   label: 'Louvor' },
   { href: '/doacoes',  label: 'Doações' },
 ]
 

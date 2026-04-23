@@ -6,8 +6,8 @@ import WoodCross from '@/components/WoodCross'
 import ScrollReveal from '@/components/ScrollReveal'
 import CopyPix from '@/components/CopyPix'
 import VersiculoAleatorio from '@/components/VersiculoAleatorio'
+import { getConfigs } from '@/lib/config'
 
-// Revalida a cada 10 minutos — sem force-dynamic, página é cacheada e servida de borda
 export const revalidate = 600
 
 export default async function Home() {
@@ -16,15 +16,15 @@ export default async function Home() {
   const seisM = new Date()
   seisM.setMonth(seisM.getMonth() + 6)
 
-  let agenda: any[] = []
-  try {
-    agenda = await prisma.evento.findMany({
+  const [agenda, cfg] = await Promise.all([
+    prisma.evento.findMany({
       where: { data: { gte: hoje, lte: seisM } },
       include: { categoria: { select: { nome: true, cor: true } } },
       orderBy: { data: 'asc' },
       take: 6,
-    })
-  } catch {}
+    }).catch(() => []),
+    getConfigs(),
+  ])
 
   return (
     <main className="bg-[#0a0a0a] text-[#f0ede8]">
@@ -36,14 +36,14 @@ export default async function Home() {
         <div className="absolute inset-0 pointer-events-none z-0" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 60%, rgba(200,185,154,0.07) 0%, transparent 70%)' }} />
         <div className="relative z-10 flex flex-col items-center w-full max-w-2xl mx-auto">
           <div className="mb-8 animate-fade-up delay-300">
-            <Image src="/logo.png" alt="Logo CCCN" width={88} height={88} className="rounded-full" priority />
+            <Image src="/logo.png" alt={`Logo ${cfg.nome_igreja}`} width={88} height={88} className="rounded-full" priority />
           </div>
           <h1 className="font-display font-normal leading-[1.1] text-[#f0ede8] animate-fade-up delay-500" style={{ fontSize: 'clamp(2.4rem,8vw,5.2rem)' }}>
-            Bem-vindo à<br />
+            {cfg.hero_subtitulo.split(' em Cristo')[0]}<br />
             <em style={{ color: '#c8b99a' }}>sua família</em> em Cristo
           </h1>
           <p className="mt-5 font-body font-light text-[0.75rem] tracking-[0.22em] uppercase text-[#888480] animate-fade-up delay-700">
-            Campos Novos · Santa Catarina
+            {cfg.cidade}
           </p>
           <div className="w-px h-12 my-8 animate-fade-up delay-900" style={{ background: 'linear-gradient(to bottom, transparent, #c8b99a, transparent)' }} />
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto animate-fade-up delay-1100">
@@ -62,9 +62,9 @@ export default async function Home() {
         <WoodCross opacity={0.025} />
         <div className="relative z-10 flex flex-col sm:flex-row">
           {[
-            { label: 'Culto principal', value: 'Domingos' },
-            { label: 'Horário',         value: '19h – 21h' },
-            { label: 'Endereço',        value: 'R. João G. de Araújo, 829\nBairro Aparecida' },
+            { label: 'Culto principal', value: cfg.culto_dia },
+            { label: 'Horário',         value: cfg.culto_horario },
+            { label: 'Endereço',        value: `${cfg.endereco}\n${cfg.bairro}` },
           ].map((item, i) => (
             <div key={i} className="flex-1 px-6 py-7 text-center"
               style={{ borderBottom: i < 2 ? '1px solid rgba(240,237,232,0.12)' : 'none' }}>
@@ -86,7 +86,7 @@ export default async function Home() {
               aberta ao mundo
             </h2>
             <p className="font-body font-light text-[0.95rem] leading-[1.9] text-[#888480] max-w-[640px] mb-10">
-              Fundada em 2013, somos uma família de crentes reunida em Campos Novos, SC — o C.C.C.N Ministério Apostólico do Coração de Deus — com o propósito de viver o Evangelho, amar as pessoas e transformar nossa cidade pela graça de Deus.
+              {cfg.home_historia}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-px" style={{ background: 'rgba(240,237,232,0.12)', border: '1px solid rgba(240,237,232,0.12)' }}>
               {[
@@ -170,10 +170,10 @@ export default async function Home() {
               </h2>
             </div>
             {[
-              { label: 'Endereço',        value: 'Rua João Gonçalves de Araújo, 829\nBairro Aparecida · Campos Novos – SC' },
-              { label: 'Culto principal', value: 'Domingos das 19h às 21h' },
-              { label: 'Telefone',        value: '(49) 9152-9414', href: 'tel:+554991529414' },
-              { label: 'Instagram',       value: '@cccnchurch',    href: 'https://instagram.com/cccnchurch' },
+              { label: 'Endereço',        value: `${cfg.endereco}\n${cfg.bairro} · ${cfg.cidade_estado}` },
+              { label: 'Culto principal', value: `${cfg.culto_dia} das ${cfg.culto_horario}` },
+              { label: 'Telefone',        value: cfg.telefone, href: `tel:${cfg.telefone_link}` },
+              { label: 'Instagram',       value: '@' + cfg.instagram.split('/').pop(), href: cfg.instagram },
             ].map((item) => (
               <div key={item.label} className="relative z-10">
                 <div className="font-body text-[0.6rem] tracking-[0.25em] uppercase text-[#c8b99a] mb-1">{item.label}</div>
@@ -186,13 +186,12 @@ export default async function Home() {
               </div>
             ))}
             <div className="relative z-10">
-              <a href="https://maps.google.com/?cid=2675944410497490917" target="_blank" rel="noopener noreferrer"
+              <a href={cfg.maps_link} target="_blank" rel="noopener noreferrer"
                 className="inline-block px-7 py-3 bg-[#f0ede8] text-[#0a0a0a] font-body font-medium text-[0.7rem] tracking-[0.18em] uppercase hover:bg-[#c8b99a] transition-colors">
                 Abrir no Google Maps
               </a>
             </div>
           </div>
-          {/* iframe com loading=lazy — não bloqueia o carregamento inicial */}
           <div className="min-h-[360px] md:min-h-0" style={{ borderTop: '1px solid rgba(240,237,232,0.12)' }}>
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d900!2d-51.2109056!3d-27.3975733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94e17b01bab8202b%3A0x2524dd437a651fe5!2sComunidade%20Crist%C3%A3%20de%20Campos%20Novos!5e0!3m2!1spt-BR!2sbr!4v1681000000000!5m2!1spt-BR!2sbr"
@@ -214,21 +213,19 @@ export default async function Home() {
               <h2 className="font-display font-normal leading-[1.2] text-[#f0ede8] mb-5" style={{ fontSize: 'clamp(1.9rem,5vw,3.2rem)' }}>
                 Apoie a obra de <em style={{ color: '#c8b99a' }}>Deus</em>
               </h2>
-              <p className="font-body font-light text-[0.95rem] leading-[1.9] text-[#888480]">
-                Sua contribuição sustenta o ministério, os cultos, os projetos sociais e a missão da Comunidade Cristã de Campos Novos. Deus vê e honra cada oferta feita com amor.
-              </p>
+              <p className="font-body font-light text-[0.95rem] leading-[1.9] text-[#888480]">{cfg.doacoes_texto}</p>
             </div>
             <div className="flex flex-col gap-5 p-7 sm:p-10" style={{ border: '1px solid rgba(240,237,232,0.12)' }}>
               <div>
                 <div className="font-body text-[0.62rem] tracking-[0.25em] uppercase text-[#c8b99a] mb-1">Chave Pix</div>
-                <div className="font-display text-[1.2rem] text-[#f0ede8] tracking-wide break-all">18.702.714/0001-07</div>
-                <div className="font-body text-[0.73rem] text-[#888480] mt-0.5">CNPJ — Transferência instantânea</div>
+                <div className="font-display text-[1.2rem] text-[#f0ede8] tracking-wide break-all">{cfg.pix_chave}</div>
+                <div className="font-body text-[0.73rem] text-[#888480] mt-0.5">{cfg.pix_tipo} — Transferência instantânea</div>
               </div>
               <div style={{ height: 1, background: 'rgba(240,237,232,0.12)' }} />
               <p className="font-body font-light text-[0.82rem] text-[#888480] leading-relaxed">
                 Copie a chave e realize sua doação pelo aplicativo do banco. Toda contribuição é destinada integralmente ao ministério.
               </p>
-              <CopyPix />
+              <CopyPix chave={cfg.pix_chave} />
             </div>
           </div>
         </div>

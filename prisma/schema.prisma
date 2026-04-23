@@ -12,6 +12,13 @@ enum Role {
   COLABORADOR
 }
 
+enum Recorrencia {
+  NENHUMA
+  SEMANAL
+  QUINZENAL
+  MENSAL
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -32,16 +39,18 @@ model Categoria {
 }
 
 model Evento {
-  id          String     @id @default(cuid())
+  id          String      @id @default(cuid())
   titulo      String
   descricao   String?
   data        DateTime
   horario     String
   categoriaId String?
-  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
-  destaque    Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  categoria   Categoria?  @relation(fields: [categoriaId], references: [id])
+  destaque    Boolean     @default(false)
+  recorrencia Recorrencia @default(NENHUMA)
+  recorrenciaFim DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model Palavra {
@@ -68,6 +77,33 @@ model Foto {
 model Aviso {
   id        String   @id @default(cuid())
   texto     String
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Playlist {
+  id        String   @id @default(cuid())
+  titulo    String
+  url       String
+  tipo      String   @default("spotify") // spotify | youtube
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Config {
+  id    String @id
+  valor String
+}
+
+model Lider {
+  id        String   @id @default(cuid())
+  nome      String
+  cargo     String
+  bio       String?
+  fotoUrl   String?
+  ordem     Int      @default(0)
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

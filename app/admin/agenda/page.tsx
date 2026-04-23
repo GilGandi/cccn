@@ -11,7 +11,7 @@ type Evento = {
   categoriaId?: string; categoria?: Categoria
 }
 
-const emptyForm = { titulo: '', descricao: '', data: '', horario: '', categoriaId: '' }
+const emptyForm = { titulo: '', descricao: '', data: '', horario: '', categoriaId: '', recorrencia: 'NENHUMA', recorrenciaFim: '' }
 const inp = "w-full bg-[#0f0f0f] border border-white/[0.08] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 rounded-md outline-none focus:border-[#c8b99a]/50 transition-colors placeholder:text-[#444]"
 const lbl = "block font-body text-[0.6rem] tracking-[0.18em] uppercase text-[#666] mb-1.5"
 
@@ -63,7 +63,7 @@ export default function AdminAgenda() {
 
   const openNovo = () => { setForm(emptyForm); setEditId(null); setMsg(''); setModal('novo') }
   const openEditar = (e: Evento) => {
-    setForm({ titulo: e.titulo, descricao: e.descricao || '', data: e.data.slice(0, 10), horario: e.horario, categoriaId: e.categoriaId || '' })
+    setForm({ titulo: e.titulo, descricao: e.descricao || '', data: e.data.slice(0, 10), horario: e.horario, categoriaId: e.categoriaId || '', recorrencia: (e as any).recorrencia || 'NENHUMA', recorrenciaFim: '' })
     setEditId(e.id); setMsg(''); setModal('editar')
   }
 
@@ -230,6 +230,25 @@ export default function AdminAgenda() {
               <textarea className={inp + ' resize-none'} rows={2} placeholder="Detalhes opcionais..."
                 value={form.descricao} onChange={e => setForm({ ...form, descricao: e.target.value })} />
             </div>
+            <div>
+              <label className={lbl}>Recorrência</label>
+              <select className={inp} value={form.recorrencia}
+                onChange={e => setForm({ ...form, recorrencia: e.target.value })}>
+                <option value="NENHUMA">Sem recorrência</option>
+                <option value="SEMANAL">Toda semana</option>
+                <option value="QUINZENAL">A cada 2 semanas</option>
+                <option value="MENSAL">Todo mês</option>
+              </select>
+            </div>
+            {form.recorrencia !== 'NENHUMA' && (
+              <div>
+                <label className={lbl}>Repetir até (opcional)</label>
+                <input type="date" className={inp} value={form.recorrenciaFim}
+                  onChange={e => setForm({ ...form, recorrenciaFim: e.target.value })} />
+                <p className="font-body text-[0.6rem] text-[#555] mt-1">Se vazio, repete por 3 meses.</p>
+              </div>
+            )}
+
             {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
             <div className="flex gap-2 pt-1">
               <button onClick={saveEvento} disabled={saving}

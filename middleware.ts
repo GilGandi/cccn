@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
 // Rotas que exigem role ADMIN
-const ADMIN_ONLY = ['/admin/usuarios']
+const ADMIN_ONLY = ['/admin/usuarios', '/admin/configuracoes']
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
