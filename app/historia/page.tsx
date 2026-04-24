@@ -5,6 +5,7 @@ import WoodCross from '@/components/WoodCross'
 import { getConfigs } from '@/lib/config'
 import { prisma } from '@/lib/prisma'
 import Image from 'next/image'
+import { safeImageSrc } from '@/lib/safeUrl'
 
 export default async function Historia() {
   const [cfg, lideres] = await Promise.all([
@@ -41,8 +42,8 @@ export default async function Historia() {
             {lideres.map(l => (
               <div key={l.id} className="flex flex-col gap-4">
                 <div className="relative h-64 rounded-xl overflow-hidden bg-[#111] border border-white/[0.06]">
-                  {l.fotoUrl ? (
-                    <Image src={l.fotoUrl} alt={l.nome} fill className="object-cover" unoptimized />
+                  {safeImageSrc(l.fotoUrl) ? (
+                    <Image src={safeImageSrc(l.fotoUrl)!} alt={l.nome} fill className="object-cover" unoptimized />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <div className="w-24 h-24 rounded-full bg-[#c8b99a]/10 flex items-center justify-center text-[#c8b99a] font-display text-[2.5rem]">

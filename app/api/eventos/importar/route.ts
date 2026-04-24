@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { parseJson } from '@/lib/parseJson'
+import { requireAdmin } from '@/lib/apiAuth'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-  if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  // Ação em massa — apenas ADMIN
+  const auth = await requireAdmin(req)
+  if (!auth.ok) return auth.response
 
-  const body = await req.json()
+  const parsed = await parseJson(req)
+  if (!parsed.ok) return parsed.response
+  const body = parsed.data
+
   const { mesOrigem, anoOrigem, mesDestino, anoDestino } = body
-
-  // Validar que são números inteiros válidos
   const vals = [mesOrigem, anoOrigem, mesDestino, anoDestino]
   if (vals.some(v => !Number.isInteger(Number(v)))) {
     return NextResponse.json({ error: 'Parâmetros inválidos.' }, { status: 400 })
@@ -30,16 +33,14 @@ export async function POST(req: NextRequest) {
 
   const eventos = await prisma.evento.findMany({
     where: { data: { gte: inicio, lte: fim } },
-    take: 100, // limite de segurança
+    take: 100,
   })
 
-  if (eventos.length === 0) {
-    return NextResponse.json({ importados: 0 })
-  }
+  if (eventos.length === 0) return NextResponse.json({ importados: 0 })
 
   const diffMeses = (anoD - ano) * 12 + (mesD - mes)
 
-  const criados = await Promise.all(
+  const criados = await prisma.$transaction(
     eventos.map(ev => {
       const novaData = new Date(ev.data)
       novaData.setMonth(novaData.getMonth() + diffMeses)
@@ -50,7 +51,6 @@ export async function POST(req: NextRequest) {
           data:        novaData,
           horario:     ev.horario,
           categoriaId: ev.categoriaId,
-          destaque:    ev.destaque,
         },
       })
     })

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Modal from '@/components/admin/Modal'
 import ImageUpload from '@/components/admin/ImageUpload'
+import { safeImageSrc } from '@/lib/safeUrl'
 
 type Lider = { id: string; nome: string; cargo: string; bio: string | null; fotoUrl: string | null; ordem: number; ativo: boolean }
 const empty = { nome: '', cargo: '', bio: '', fotoUrl: '', ordem: 0 }
@@ -71,8 +72,8 @@ export default function AdminLideres() {
           <div key={l.id} className="group bg-[#111] border border-white/[0.07] rounded-xl overflow-hidden hover:border-white/[0.12] transition-all">
             {/* Foto */}
             <div className="relative h-48 bg-[#0a0a0a]">
-              {l.fotoUrl ? (
-                <Image src={l.fotoUrl} alt={l.nome} fill className="object-cover" unoptimized />
+              {safeImageSrc(l.fotoUrl) ? (
+                <Image src={safeImageSrc(l.fotoUrl)!} alt={l.nome} fill className="object-cover" unoptimized />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="w-20 h-20 rounded-full bg-[#c8b99a]/10 flex items-center justify-center text-[#c8b99a] font-display text-[2rem]">

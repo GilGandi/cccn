@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import FooterYear from './FooterYear'
 import { getConfigs } from '@/lib/config'
+import { safeExternalHref } from '@/lib/safeUrl'
 
 const navLinks = [
   { href: '/',         label: 'Início' },
@@ -17,9 +18,9 @@ export default async function Footer() {
   const cfg = await getConfigs()
 
   // Monta URLs a partir do handle (mais simples) ou da URL completa (legado)
-  const igUrl  = cfg.instagram_handle  ? `https://instagram.com/${cfg.instagram_handle}`  : cfg.instagram
-  const fbUrl  = cfg.facebook_handle   ? `https://facebook.com/${cfg.facebook_handle}`    : cfg.facebook
-  const waUrl  = cfg.whatsapp
+  const igUrl  = cfg.instagram_handle  ? `https://instagram.com/${cfg.instagram_handle}`  : safeExternalHref(cfg.instagram)
+  const fbUrl  = cfg.facebook_handle   ? `https://facebook.com/${cfg.facebook_handle}`    : safeExternalHref(cfg.facebook)
+  const waUrl  = safeExternalHref(cfg.whatsapp)
 
   const sociais = [
     igUrl && {

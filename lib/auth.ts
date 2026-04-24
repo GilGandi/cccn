@@ -4,17 +4,43 @@ import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rateLimit'
 import bcrypt from 'bcryptjs'
 
-// Hash dummy — usado quando o usuário não existe para manter tempo de resposta constante
-// e evitar timing attack (não revelar se email existe)
-const DUMMY_HASH = '$2a$12$dummy.hash.to.prevent.timing.attacks.on.user.enumeration'
+// Hash dummy — tempo constante vs. user enumeration
+const DUMMY_HASH = '$2a$12$abcdefghijklmnopqrstuvwxyz012345678901234567890123456789.'
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: 'jwt',
-    maxAge: 8 * 60 * 60, // sessão expira em 8 horas
+    maxAge: 8 * 60 * 60,       // 8 horas
+    updateAge: 60 * 60,        // atualiza a sessão a cada 1h
   },
   pages: { signIn: '/admin/login' },
+  // Cookies com flags seguras em produção
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    csrfToken: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Host-next-auth.csrf-token'
+        : 'next-auth.csrf-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -24,20 +50,24 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null
+        if (typeof credentials.email !== 'string' || typeof credentials.password !== 'string') return null
+        if (credentials.email.length > 254 || credentials.password.length > 200) return null
 
-        // Rate limit: máx 10 tentativas por IP a cada 15 minutos
-        const ip = (req as any)?.headers?.['x-forwarded-for'] ?? 'unknown'
-        const key = `login:${ip}`
-        if (!rateLimit(key, 10, 15 * 60 * 1000)) {
+        // Rate limit por IP + por e-mail (bloqueia ataques distribuídos a uma conta)
+        const xff = (req as any)?.headers?.['x-forwarded-for']
+        const ip = Array.isArray(xff) ? xff[0] : typeof xff === 'string' ? xff.split(',')[0].trim() : 'unknown'
+        const emailLower = credentials.email.toLowerCase().trim()
+
+        if (!rateLimit(`login:ip:${ip}`, 10, 15 * 60 * 1000)) {
           throw new Error('Muitas tentativas. Tente novamente em 15 minutos.')
         }
+        if (!rateLimit(`login:email:${emailLower}`, 5, 15 * 60 * 1000)) {
+          throw new Error('Conta temporariamente bloqueada. Tente novamente em 15 minutos.')
+        }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() },
-        })
+        const user = await prisma.user.findUnique({ where: { email: emailLower } })
 
-        // Sempre faz bcrypt compare — mesmo quando user não existe
-        // Isso garante tempo de resposta constante e evita user enumeration
+        // Tempo constante vs. user enumeration
         const hash = user?.password ?? DUMMY_HASH
         const valid = await bcrypt.compare(credentials.password, hash)
 

@@ -6,6 +6,7 @@ import Footer from '@/components/Footer'
 import WoodCross from '@/components/WoodCross'
 import ScrollReveal from '@/components/ScrollReveal'
 import { prisma } from '@/lib/prisma'
+import { safeImageSrc } from '@/lib/safeUrl'
 
 export default async function Lideranca() {
   const lideres = await prisma.lider.findMany({
@@ -50,9 +51,9 @@ export default async function Lideranca() {
                   >
                     {/* Foto */}
                     <div className={`relative min-h-[320px] md:min-h-[420px] bg-[#0e0e0e] ${inverso ? 'md:col-start-2' : ''}`}>
-                      {l.fotoUrl ? (
+                      {safeImageSrc(l.fotoUrl) ? (
                         <Image
-                          src={l.fotoUrl} alt={l.nome} fill
+                          src={safeImageSrc(l.fotoUrl)!} alt={l.nome} fill
                           className="object-cover object-top"
                           unoptimized
                         />

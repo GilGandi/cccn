@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { requireAuth } from '@/lib/apiAuth'
 import { prisma } from '@/lib/prisma'
+import { isValidCuid } from '@/lib/validators'
 
 type Params = Promise<{ id: string }>
 
 export async function DELETE(req: NextRequest, { params }: { params: Params }) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-  if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  const auth = await requireAuth(req)
+  if (!auth.ok) return auth.response
   const { id } = await params
-  await prisma.foto.delete({ where: { id } })
-  return NextResponse.json({ ok: true })
+  if (!isValidCuid(id)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
+
+  try {
+    await prisma.foto.delete({ where: { id } })
+    return NextResponse.json({ ok: true })
+  } catch {
+    return NextResponse.json({ error: 'Foto não encontrada.' }, { status: 404 })
+  }
 }

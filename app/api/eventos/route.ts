@@ -1,8 +1,10 @@
 export const revalidate = 60
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { parseJson } from '@/lib/parseJson'
+import { requireAuth } from '@/lib/apiAuth'
 import { prisma } from '@/lib/prisma'
+import { isValidCuid } from '@/lib/validators'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -20,38 +22,35 @@ export async function GET(req: NextRequest) {
     where,
     include: { categoria: true },
     orderBy: { data: 'asc' },
+    take: 500,
   })
   return NextResponse.json(eventos)
 }
 
-// Gera as datas de ocorrência de um evento recorrente
 function gerarOcorrencias(dataInicio: Date, recorrencia: string, dataFim: Date | null): Date[] {
   if (recorrencia === 'NENHUMA') return [dataInicio]
-
-  const fim = dataFim ?? (() => {
-    const d = new Date(dataInicio)
-    d.setMonth(d.getMonth() + 3) // padrão: 3 meses à frente
-    return d
-  })()
-
+  const fim = dataFim ?? (() => { const d = new Date(dataInicio); d.setMonth(d.getMonth() + 3); return d })()
   const datas: Date[] = []
   const atual = new Date(dataInicio)
-
   while (atual <= fim) {
     datas.push(new Date(atual))
-    if (recorrencia === 'SEMANAL')    atual.setDate(atual.getDate() + 7)
-    if (recorrencia === 'QUINZENAL')  atual.setDate(atual.getDate() + 14)
-    if (recorrencia === 'MENSAL')     atual.setMonth(atual.getMonth() + 1)
+    if (recorrencia === 'SEMANAL')   atual.setDate(atual.getDate() + 7)
+    if (recorrencia === 'QUINZENAL') atual.setDate(atual.getDate() + 14)
+    if (recorrencia === 'MENSAL')    atual.setMonth(atual.getMonth() + 1)
   }
-
-  return datas.slice(0, 52) // limite de segurança: 52 ocorrências
+  return datas.slice(0, 52)
 }
 
-export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-  if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+const RECORRENCIAS = ['NENHUMA','SEMANAL','QUINZENAL','MENSAL']
 
-  const body = await req.json()
+export async function POST(req: NextRequest) {
+  const auth = await requireAuth(req)
+  if (!auth.ok) return auth.response
+
+  const parsed = await parseJson(req)
+  if (!parsed.ok) return parsed.response
+  const body = parsed.data
+
   const { titulo, descricao, data, horario, categoriaId, recorrencia, recorrenciaFim } = body
 
   if (!titulo?.trim()) return NextResponse.json({ error: 'Título é obrigatório.' }, { status: 400 })
@@ -60,12 +59,18 @@ export async function POST(req: NextRequest) {
   const dataObj = new Date(data)
   if (!data || isNaN(dataObj.getTime())) return NextResponse.json({ error: 'Data inválida.' }, { status: 400 })
 
-  const rec = recorrencia || 'NENHUMA'
+  // Validar categoria se enviada
+  if (categoriaId && !isValidCuid(categoriaId))
+    return NextResponse.json({ error: 'Categoria inválida.' }, { status: 400 })
+
+  // Validar recorrência
+  const rec = recorrencia && RECORRENCIAS.includes(recorrencia) ? recorrencia : 'NENHUMA'
   const recFim = recorrenciaFim ? new Date(recorrenciaFim) : null
+  if (recFim && isNaN(recFim.getTime()))
+    return NextResponse.json({ error: 'Data de fim da recorrência inválida.' }, { status: 400 })
 
   const datas = gerarOcorrencias(dataObj, rec, recFim)
 
-  // Criar todas as ocorrências de uma vez
   const criados = await prisma.$transaction(
     datas.map(d => prisma.evento.create({
       data: {
@@ -80,5 +85,5 @@ export async function POST(req: NextRequest) {
     }))
   )
 
-  return NextResponse.json({ criados: criados.length, evento: criados[0] })
+  return NextResponse.json({ criados: criados.length })
 }

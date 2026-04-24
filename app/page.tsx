@@ -7,6 +7,7 @@ import ScrollReveal from '@/components/ScrollReveal'
 import CopyPix from '@/components/CopyPix'
 import VersiculoAleatorio from '@/components/VersiculoAleatorio'
 import { getConfigs } from '@/lib/config'
+import { safeExternalHref } from '@/lib/safeUrl'
 
 export const revalidate = 600
 
@@ -173,7 +174,7 @@ export default async function Home() {
               { label: 'Endereço',        value: `${cfg.endereco}\n${cfg.bairro} · ${cfg.cidade_estado}` },
               { label: 'Culto principal', value: `${cfg.culto_dia_exibicao || cfg.culto_dia} às ${cfg.culto_horario}` },
               { label: 'Telefone',        value: cfg.telefone, href: `tel:${cfg.telefone_link}` },
-              { label: 'Instagram',       value: '@' + (cfg.instagram_handle || cfg.instagram.split('/').pop()), href: cfg.instagram_handle ? `https://instagram.com/${cfg.instagram_handle}` : cfg.instagram },
+              { label: 'Instagram',       value: '@' + (cfg.instagram_handle || (cfg.instagram.split('/').pop() || '')), href: cfg.instagram_handle ? `https://instagram.com/${cfg.instagram_handle}` : (safeExternalHref(cfg.instagram) || '#') },
             ].map((item) => (
               <div key={item.label} className="relative z-10">
                 <div className="font-body text-[0.6rem] tracking-[0.25em] uppercase text-[#c8b99a] mb-1">{item.label}</div>
@@ -186,7 +187,7 @@ export default async function Home() {
               </div>
             ))}
             <div className="relative z-10">
-              <a href={cfg.maps_link} target="_blank" rel="noopener noreferrer"
+              <a href={safeExternalHref(cfg.maps_link) || "#"} target="_blank" rel="noopener noreferrer"
                 className="inline-block px-7 py-3 bg-[#f0ede8] text-[#0a0a0a] font-body font-medium text-[0.7rem] tracking-[0.18em] uppercase hover:bg-[#c8b99a] transition-colors">
                 Abrir no Google Maps
               </a>

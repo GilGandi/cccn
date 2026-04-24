@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Modal from '@/components/admin/Modal'
 import ImageUpload from '@/components/admin/ImageUpload'
+import { safeImageSrc } from '@/lib/safeUrl'
 
 type Foto = { id: string; url: string; legenda: string | null; galeria: string; ordem: number; createdAt: string }
 const GALERIAS = ['geral', 'cultos', 'jovens', 'homens', 'mulheres', 'familia', 'eventos']
@@ -85,7 +86,7 @@ export default function AdminGaleria() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
           {filtradas.map(f => (
             <div key={f.id} className="relative group rounded-xl overflow-hidden border border-white/[0.06]" style={{ aspectRatio: '1' }}>
-              <Image src={f.url} alt={f.legenda || ''} fill className="object-cover" unoptimized />
+              <Image src={safeImageSrc(f.url) || "/logo.png"} alt={f.legenda || ''} fill className="object-cover" unoptimized />
               <div className="absolute inset-0 bg-[#0a0a0a]/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
                 {f.legenda && <p className="font-body text-[0.72rem] text-[#f0ede8] leading-tight">{f.legenda}</p>}
                 <button onClick={() => del(f.id)}

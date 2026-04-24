@@ -11,7 +11,7 @@ export async function POST() {
   const existing = await prisma.user.findUnique({ where: { email: 'admin@cccn.com.br' } })
   if (existing) return NextResponse.json({ message: 'Admin já existe' })
 
-  const hash = await bcrypt.hash('cccn@2024', 10)
+  const hash = await bcrypt.hash('cccn@2024', 12)
   const user = await prisma.user.create({
     data: { name: 'Coordenador Geral', email: 'admin@cccn.com.br', password: hash, role: 'ADMIN' },
   })
