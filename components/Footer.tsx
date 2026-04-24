@@ -5,7 +5,8 @@ import { getConfigs } from '@/lib/config'
 
 const navLinks = [
   { href: '/',         label: 'Início' },
-  { href: '/historia', label: 'Nossa História' },
+  { href: '/historia',   label: 'Nossa História' },
+  { href: '/lideranca', label: 'Liderança' },
   { href: '/agenda',   label: 'Agenda' },
   { href: '/palavras', label: 'Palavras' },
   { href: '/louvor',   label: 'Louvor' },
