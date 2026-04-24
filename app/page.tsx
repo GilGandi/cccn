@@ -62,7 +62,7 @@ export default async function Home() {
         <WoodCross opacity={0.025} />
         <div className="relative z-10 flex flex-col sm:flex-row">
           {[
-            { label: 'Culto principal', value: cfg.culto_dia },
+            { label: 'Culto principal', value: cfg.culto_dia_exibicao || cfg.culto_dia },
             { label: 'Horário',         value: cfg.culto_horario },
             { label: 'Endereço',        value: `${cfg.endereco}\n${cfg.bairro}` },
           ].map((item, i) => (
@@ -90,9 +90,9 @@ export default async function Home() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-px" style={{ background: 'rgba(240,237,232,0.12)', border: '1px solid rgba(240,237,232,0.12)' }}>
               {[
-                { num: '01', title: 'Fé',     desc: 'Cristo como fundamento de tudo que somos e fazemos.' },
-                { num: '02', title: 'Família', desc: 'Relações genuínas que refletem o amor de Deus.' },
-                { num: '03', title: 'Missão',  desc: 'Levar esperança à nossa cidade e além.' },
+                { num: '01', title: cfg.home_card1_titulo, desc: cfg.home_card1_desc },
+                { num: '02', title: cfg.home_card2_titulo, desc: cfg.home_card2_desc },
+                { num: '03', title: cfg.home_card3_titulo, desc: cfg.home_card3_desc },
               ].map((v) => (
                 <div key={v.num} className="bg-[#0a0a0a] p-7">
                   <span className="font-display text-[2rem] text-[#c8b99a] opacity-50 block mb-2 leading-none">{v.num}</span>
@@ -171,9 +171,9 @@ export default async function Home() {
             </div>
             {[
               { label: 'Endereço',        value: `${cfg.endereco}\n${cfg.bairro} · ${cfg.cidade_estado}` },
-              { label: 'Culto principal', value: `${cfg.culto_dia} das ${cfg.culto_horario}` },
+              { label: 'Culto principal', value: `${cfg.culto_dia_exibicao || cfg.culto_dia} às ${cfg.culto_horario}` },
               { label: 'Telefone',        value: cfg.telefone, href: `tel:${cfg.telefone_link}` },
-              { label: 'Instagram',       value: '@' + cfg.instagram.split('/').pop(), href: cfg.instagram },
+              { label: 'Instagram',       value: '@' + (cfg.instagram_handle || cfg.instagram.split('/').pop()), href: cfg.instagram_handle ? `https://instagram.com/${cfg.instagram_handle}` : cfg.instagram },
             ].map((item) => (
               <div key={item.label} className="relative z-10">
                 <div className="font-body text-[0.6rem] tracking-[0.25em] uppercase text-[#c8b99a] mb-1">{item.label}</div>

@@ -15,8 +15,9 @@ const DEFAULTS: Record<string, string> = {
   cnpj:             '18.702.714/0001-07',
   pix_chave:        '18.702.714/0001-07',
   pix_tipo:         'CNPJ',
-  culto_dia:        'Domingos',
-  culto_horario:    '19h – 21h',
+  culto_dia:             '["Domingo"]',
+  culto_dia_exibicao:    'Domingos',
+  culto_horario:    '19h',
   instagram:        'https://instagram.com/cccnchurch',
   facebook:         'https://www.facebook.com/cccnchurch/',
   whatsapp:         'https://wa.me/554991529414',
@@ -29,6 +30,14 @@ const DEFAULTS: Record<string, string> = {
   maps_link:        'https://maps.google.com/?cid=2675944410497490917',
   hero_subtitulo:   'Bem-vindo à sua família em Cristo',
   home_historia:    'Fundada em 2013, somos uma família de crentes reunida em Campos Novos, SC.',
+  home_card1_titulo: 'Fé',
+  home_card1_desc:   'Cristo como fundamento de tudo que somos e fazemos.',
+  home_card2_titulo: 'Família',
+  home_card2_desc:   'Relações genuínas que refletem o amor de Deus.',
+  home_card3_titulo: 'Missão',
+  home_card3_desc:   'Levar esperança à nossa cidade e além.',
+  instagram_handle:  'cccnchurch',
+  facebook_handle:   'cccnchurch',
 }
 
 export async function getConfigs(): Promise<Record<string, string>> {
