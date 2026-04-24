@@ -1,10 +1,10 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install --legacy-peer-deps && npx prisma generate && npx next build"
+buildCommand = "npm install --legacy-peer-deps && npx prisma generate && npx prisma db push --accept-data-loss && npx next build"
 
 [build.nixpacksPlan.phases.setup]
 nixPkgs = ["nodejs_20"]
 
 [deploy]
-startCommand = "npx prisma db push --accept-data-loss && npx next start -p $PORT"
+startCommand = "npx next start -p $PORT"
 restartPolicyType = "on_failure"
