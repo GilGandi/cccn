@@ -40,6 +40,7 @@ export default function AdminAgenda() {
   const [form, setForm]             = useState<any>(emptyForm)
   const [editId, setEditId]         = useState<string | null>(null)
   const [catForm, setCatForm]       = useState({ nome: '', cor: '#c8b99a' })
+  const [catEditId, setCatEditId]   = useState<string | null>(null)
   const [saving, setSaving]         = useState(false)
   const [msg, setMsg]               = useState('')
   const [filtro, setFiltro]         = useState<'proximos' | 'todos'>('proximos')
@@ -90,10 +91,18 @@ export default function AdminAgenda() {
   const saveCat = async () => {
     if (!catForm.nome) { setMsg('Informe o nome.'); return }
     setSaving(true); setMsg('')
-    const r = await fetch('/api/categorias', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(catForm) })
-    if (r.ok) { setModal(null); setCatForm({ nome: '', cor: '#c8b99a' }); load() }
-    else { const d = await r.json(); setMsg(d.error || 'Erro ao criar.') }
+    const url    = catEditId ? `/api/categorias/${catEditId}` : '/api/categorias'
+    const method = catEditId ? 'PUT' : 'POST'
+    const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(catForm) })
+    if (r.ok) { setCatEditId(null); setCatForm({ nome: '', cor: '#c8b99a' }); load() }
+    else { const d = await r.json(); setMsg(d.error || 'Erro ao salvar.') }
     setSaving(false)
+  }
+
+  const deleteCat = async (id: string) => {
+    if (!confirm('Excluir esta categoria? Eventos vinculados ficarão sem categoria.')) return
+    await fetch(`/api/categorias/${id}`, { method: 'DELETE' })
+    load()
   }
 
   const runManutencao = async () => {
@@ -127,9 +136,9 @@ export default function AdminAgenda() {
               Limpar ({qtdAntigos})
             </button>
           )}
-          <button onClick={() => { setMsg(''); setModal('cat') }}
+          <button onClick={() => { setMsg(''); setCatEditId(null); setCatForm({ nome: '', cor: '#c8b99a' }); setModal('cat') }}
             className="px-4 py-2 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] hover:border-white/20 transition-all">
-            + Categoria
+            Categorias
           </button>
           <button onClick={openNovo}
             className="px-4 py-2 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all">
@@ -264,34 +273,69 @@ export default function AdminAgenda() {
         </Modal>
       )}
 
-      {/* Modal Categoria */}
+      {/* Modal Categorias */}
       {modal === 'cat' && (
-        <Modal title="Nova categoria" onClose={() => setModal(null)} size="sm">
+        <Modal title="Categorias" onClose={() => setModal(null)}>
           <div className="flex flex-col gap-4">
-            <div>
-              <label className={lbl}>Nome *</label>
-              <input className={inp} placeholder="Ex: Culto, Jovens, Kids..." value={catForm.nome} autoFocus
-                onChange={e => setCatForm({ ...catForm, nome: e.target.value })} />
-            </div>
-            <div>
-              <label className={lbl}>Cor</label>
-              <div className="flex items-center gap-3">
+            {/* Lista de categorias existentes */}
+            {cats.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                {cats.map(cat => (
+                  <div key={cat.id} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/[0.05] group">
+                    <div className="w-4 h-4 rounded-full shrink-0" style={{ background: cat.cor }} />
+                    <span className="font-body text-[0.85rem] text-[#f0ede8] flex-1">{cat.nome}</span>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => { setCatEditId(cat.id); setCatForm({ nome: cat.nome, cor: cat.cor }); setMsg('') }}
+                        className="p-1.5 rounded text-[#555] hover:text-[#f0ede8] hover:bg-white/[0.06] transition-all">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button onClick={() => deleteCat(cat.id)}
+                        className="p-1.5 rounded text-[#555] hover:text-red-400 hover:bg-red-500/[0.08] transition-all">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Separador */}
+            {cats.length > 0 && (
+              <div className="border-t border-white/[0.06] pt-4">
+                <p className="font-body text-[0.6rem] tracking-widest uppercase text-[#555] mb-3">
+                  {catEditId ? 'Editar categoria' : 'Nova categoria'}
+                </p>
+              </div>
+            )}
+
+            {/* Formulário de criar/editar */}
+            <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
+              <div>
+                <label className={lbl}>Nome *</label>
+                <input className={inp} placeholder="Ex: Culto, Jovens, Kids..." value={catForm.nome}
+                  onChange={e => setCatForm({ ...catForm, nome: e.target.value })} />
+              </div>
+              <div>
+                <label className={lbl}>Cor</label>
                 <input type="color" value={catForm.cor}
                   onChange={e => setCatForm({ ...catForm, cor: e.target.value })}
                   className="w-10 h-10 rounded-md border border-white/[0.08] bg-[#111] cursor-pointer p-1" />
-                <span className="font-body text-[0.78rem] text-[#555]">{catForm.cor}</span>
               </div>
             </div>
+
             {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
-            <div className="flex gap-2 pt-1">
+
+            <div className="flex gap-2">
               <button onClick={saveCat} disabled={saving}
                 className="flex-1 py-2.5 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all disabled:opacity-50">
-                {saving ? 'Criando...' : 'Criar categoria'}
+                {saving ? 'Salvando...' : catEditId ? 'Salvar alterações' : 'Criar categoria'}
               </button>
-              <button onClick={() => setModal(null)}
-                className="px-5 py-2.5 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] transition-all">
-                Cancelar
-              </button>
+              {catEditId && (
+                <button onClick={() => { setCatEditId(null); setCatForm({ nome: '', cor: '#c8b99a' }); setMsg('') }}
+                  className="px-4 py-2.5 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] transition-all">
+                  Cancelar
+                </button>
+              )}
             </div>
           </div>
         </Modal>
