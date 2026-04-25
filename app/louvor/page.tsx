@@ -24,6 +24,10 @@ export default async function Louvor() {
     orderBy: { createdAt: 'desc' },
   })
 
+  const youtube = playlists.filter(p => p.tipo === 'youtube')
+  const spotify = playlists.filter(p => p.tipo === 'spotify')
+  const outros  = playlists.filter(p => p.tipo !== 'youtube' && p.tipo !== 'spotify')
+
   return (
     <main className="bg-[#0a0a0a] text-[#f0ede8]">
       <Navbar />
@@ -44,64 +48,100 @@ export default async function Louvor() {
           <p className="font-body text-[0.95rem] text-[#888480] text-center py-20">Nenhuma playlist disponível no momento.</p>
         ) : (
           <div className="flex flex-col gap-16">
-            {playlists.map(p => {
+
+            {/* YouTube — grid de 3 colunas, 16:9 */}
+            {youtube.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-6">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-red-400 shrink-0">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                  <h2 className="font-display text-[1.2rem] text-[#f0ede8]">YouTube</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {youtube.map(p => {
+                    const embed = embedUrl(p.url, p.tipo)
+                    return (
+                      <div key={p.id} className="flex flex-col gap-3">
+                        {embed ? (
+                          <div className="relative w-full rounded-xl overflow-hidden border border-white/[0.06]"
+                            style={{ aspectRatio: '16 / 9' }}>
+                            <iframe
+                              src={embed}
+                              className="absolute inset-0 w-full h-full"
+                              frameBorder="0"
+                              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                              allowFullScreen
+                              loading="lazy"
+                            />
+                          </div>
+                        ) : (
+                          <a href={p.url} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center justify-center rounded-xl border border-white/[0.08] bg-[#111] hover:border-[#c8b99a]/30 transition-all"
+                            style={{ aspectRatio: '16 / 9' }}>
+                            <span className="font-body text-[0.85rem] text-[#c8b99a]">Abrir no YouTube →</span>
+                          </a>
+                        )}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-body text-[0.82rem] text-[#f0ede8] truncate">{p.titulo}</span>
+                          <a href={p.url} target="_blank" rel="noopener noreferrer"
+                            className="font-body text-[0.6rem] tracking-widest uppercase text-[#555] hover:text-[#c8b99a] transition-colors shrink-0 flex items-center gap-1">
+                            Abrir
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                          </a>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Spotify — lista vertical (embed largo funciona melhor) */}
+            {spotify.map(p => {
               const embed = embedUrl(p.url, p.tipo)
               return (
                 <div key={p.id}>
                   <div className="flex items-center gap-3 mb-6">
-                    {p.tipo === 'spotify' && (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-green-400 shrink-0">
-                        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-                      </svg>
-                    )}
-                    {p.tipo === 'youtube' && (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-red-400 shrink-0">
-                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                      </svg>
-                    )}
-                    <h2 className="font-display text-[1.4rem] text-[#f0ede8]">{p.titulo}</h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-green-400 shrink-0">
+                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                    </svg>
+                    <h2 className="font-display text-[1.2rem] text-[#f0ede8]">{p.titulo}</h2>
                     <a href={p.url} target="_blank" rel="noopener noreferrer"
-                      className="ml-auto font-body text-[0.68rem] tracking-widest uppercase text-[#888480] hover:text-[#c8b99a] transition-colors flex items-center gap-1.5 shrink-0">
+                      className="ml-auto font-body text-[0.6rem] tracking-widest uppercase text-[#555] hover:text-[#c8b99a] transition-colors flex items-center gap-1 shrink-0">
                       Abrir
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     </a>
                   </div>
-
                   {embed ? (
-                    p.tipo === 'youtube' ? (
-                      /* YouTube — 16:9 responsivo */
-                      <div className="relative w-full rounded-xl overflow-hidden border border-white/[0.06]"
-                        style={{ aspectRatio: '16 / 9' }}>
-                        <iframe
-                          src={embed}
-                          className="absolute inset-0 w-full h-full"
-                          frameBorder="0"
-                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                          allowFullScreen
-                          loading="lazy"
-                        />
-                      </div>
-                    ) : (
-                      /* Spotify — altura fixa */
-                      <iframe
-                        src={embed}
-                        width="100%"
-                        height={380}
-                        frameBorder="0"
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                        loading="lazy"
-                        style={{ borderRadius: '12px', border: '1px solid rgba(240,237,232,0.08)' }}
-                      />
-                    )
+                    <iframe
+                      src={embed}
+                      width="100%"
+                      height={380}
+                      frameBorder="0"
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      loading="lazy"
+                      style={{ borderRadius: '12px', border: '1px solid rgba(240,237,232,0.08)' }}
+                    />
                   ) : (
                     <a href={p.url} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-3 p-5 rounded-xl border border-white/[0.08] bg-[#111] hover:border-[#c8b99a]/30 transition-all">
-                      <span className="font-body text-[0.85rem] text-[#c8b99a]">Abrir playlist →</span>
+                      <span className="font-body text-[0.85rem] text-[#c8b99a]">Abrir no Spotify →</span>
                     </a>
                   )}
                 </div>
               )
             })}
+
+            {/* Outros */}
+            {outros.map(p => (
+              <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 p-5 rounded-xl border border-white/[0.08] bg-[#111] hover:border-[#c8b99a]/30 transition-all">
+                <span className="text-[1rem]">🎵</span>
+                <span className="font-body text-[0.88rem] text-[#f0ede8]">{p.titulo}</span>
+                <span className="ml-auto font-body text-[0.68rem] text-[#c8b99a]">Abrir →</span>
+              </a>
+            ))}
           </div>
         )}
       </div>

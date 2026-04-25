@@ -24,6 +24,7 @@ function TipoIcon({ tipo }: { tipo: string }) {
 
 export default function AdminLouvor() {
   const [items, setItems]   = useState<Playlist[]>([])
+  const [loading, setLoading] = useState(true)
   const [modal, setModal]   = useState<'novo' | 'editar' | null>(null)
   const [form, setForm]     = useState<any>(empty)
   const [editId, setEditId] = useState<string | null>(null)
@@ -31,8 +32,10 @@ export default function AdminLouvor() {
   const [msg, setMsg]       = useState('')
 
   const load = async () => {
+    setLoading(true)
     const r = await fetch('/api/playlist')
     setItems(await r.json())
+    setLoading(false)
   }
   useEffect(() => { load() }, [])
 
@@ -48,11 +51,6 @@ export default function AdminLouvor() {
     if (r.ok) { setModal(null); load() }
     else { const d = await r.json(); setMsg(d.error || 'Erro ao salvar.') }
     setSaving(false)
-  }
-
-  const toggle = async (id: string, ativo: boolean) => {
-    await fetch(`/api/playlist/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ativo: !ativo }) })
-    load()
   }
 
   const del = async (id: string) => {
@@ -74,45 +72,43 @@ export default function AdminLouvor() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
-        {items.length === 0 && (
-          <div className="col-span-2 text-center py-20 border border-dashed border-white/[0.06] rounded-xl">
-            <p className="font-body text-[0.85rem] text-[#444]">Nenhuma playlist cadastrada.</p>
-            <button onClick={openNovo} className="mt-3 font-body text-[0.75rem] text-[#c8b99a] hover:underline">Adicionar a primeira</button>
-          </div>
-        )}
-        {items.map(p => (
-          <div key={p.id} className="flex items-center gap-4 p-4 rounded-xl border border-white/[0.07] bg-[#111] group hover:border-white/[0.12] transition-all">
-            <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
-              <TipoIcon tipo={p.tipo} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-body text-[0.88rem] text-[#f0ede8] truncate">{p.titulo}</span>
-                {!p.ativo && <span className="font-body text-[0.55rem] tracking-widest uppercase px-2 py-0.5 rounded bg-white/[0.04] text-[#555]">Inativo</span>}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-6 h-6 border-2 border-[#c8b99a]/30 border-t-[#c8b99a] rounded-full animate-spin" />
+        </div>
+      ) : items.length === 0 ? (
+        <div className="text-center py-20 border border-dashed border-white/[0.06] rounded-xl">
+          <p className="font-body text-[0.85rem] text-[#444]">Nenhuma playlist cadastrada.</p>
+          <button onClick={openNovo} className="mt-3 font-body text-[0.75rem] text-[#c8b99a] hover:underline">Adicionar a primeira</button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
+          {items.map(p => (
+            <div key={p.id} className="flex items-center gap-4 p-4 rounded-xl border border-white/[0.07] bg-[#111] group hover:border-white/[0.12] transition-all">
+              <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0">
+                <TipoIcon tipo={p.tipo} />
               </div>
-              <a href={p.url} target="_blank" rel="noopener noreferrer"
-                className="font-body text-[0.72rem] text-[#555] hover:text-[#c8b99a] transition-colors truncate block mt-0.5">
-                {p.url}
-              </a>
+              <div className="flex-1 min-w-0">
+                <span className="font-body text-[0.88rem] text-[#f0ede8] truncate block">{p.titulo}</span>
+                <a href={p.url} target="_blank" rel="noopener noreferrer"
+                  className="font-body text-[0.72rem] text-[#555] hover:text-[#c8b99a] transition-colors truncate block mt-0.5">
+                  {p.url}
+                </a>
+              </div>
+              <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => openEditar(p)}
+                  className="p-2 rounded-lg text-[#555] hover:text-[#f0ede8] hover:bg-white/[0.06] transition-all">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button onClick={() => del(p.id)}
+                  className="p-2 rounded-lg text-[#555] hover:text-red-400 hover:bg-red-500/[0.08] transition-all">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
+              </div>
             </div>
-            <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onClick={() => toggle(p.id, p.ativo)}
-                className={`p-2 rounded-lg transition-all ${p.ativo ? 'text-green-400 hover:bg-green-400/[0.08]' : 'text-[#555] hover:text-[#f0ede8] hover:bg-white/[0.06]'}`}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-              <button onClick={() => openEditar(p)}
-                className="p-2 rounded-lg text-[#555] hover:text-[#f0ede8] hover:bg-white/[0.06] transition-all">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button onClick={() => del(p.id)}
-                className="p-2 rounded-lg text-[#555] hover:text-red-400 hover:bg-red-500/[0.08] transition-all">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {modal && (
         <Modal title={modal === 'novo' ? 'Nova playlist' : 'Editar playlist'} onClose={() => setModal(null)} size="sm">

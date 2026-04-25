@@ -17,10 +17,13 @@ export default function AdminLideres() {
   const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg]       = useState('')
+  const [loading, setLoading] = useState(true)
 
   const load = async () => {
+    setLoading(true)
     const r = await fetch('/api/lideres')
     setItems(await r.json())
+    setLoading(false)
   }
   useEffect(() => { load() }, [])
 
@@ -61,6 +64,11 @@ export default function AdminLideres() {
         </button>
       </div>
 
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-6 h-6 border-2 border-[#c8b99a]/30 border-t-[#c8b99a] rounded-full animate-spin" />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {items.length === 0 && (
           <div className="col-span-3 text-center py-20 border border-dashed border-white/[0.06] rounded-xl">
@@ -102,6 +110,7 @@ export default function AdminLideres() {
           </div>
         ))}
       </div>
+      )}
 
       {modal && (
         <Modal title={modal === 'novo' ? 'Novo líder' : 'Editar líder'} onClose={() => setModal(null)}>

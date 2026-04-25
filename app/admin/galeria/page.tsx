@@ -19,11 +19,14 @@ export default function AdminGaleria() {
   const [galeria, setGaleria] = useState('geral')
   const [saving, setSaving]   = useState(false)
   const [msg, setMsg]         = useState('')
+  const [loading, setLoading] = useState(true)
 
   const load = async () => {
+    setLoading(true)
     const r = await fetch('/api/fotos')
     const d = await r.json()
     setFotos(Array.isArray(d) ? d : [])
+    setLoading(false)
   }
   useEffect(() => { load() }, [])
 
@@ -62,6 +65,11 @@ export default function AdminGaleria() {
         </button>
       </div>
 
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-6 h-6 border-2 border-[#c8b99a]/30 border-t-[#c8b99a] rounded-full animate-spin" />
+        </div>
+      ) : (<>
       {/* Filtro galerias */}
       <div className="flex flex-wrap gap-1.5 mb-6 bg-[#111] border border-white/[0.06] rounded-lg p-1.5">
         {GALERIAS.map(g => (
@@ -98,6 +106,7 @@ export default function AdminGaleria() {
           ))}
         </div>
       )}
+      </>)}
 
       {modal && (
         <Modal title="Adicionar foto" onClose={() => setModal(false)} size="sm">

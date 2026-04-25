@@ -33,6 +33,7 @@ export default function AdminUsuarios() {
   const currentUserId = (session?.user as any)?.id
 
   const [users, setUsers]   = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
   const [modal, setModal]   = useState<'novo' | 'editar' | null>(null)
   const [form, setForm]     = useState<any>(emptyForm)
   const [editId, setEditId] = useState<string | null>(null)
@@ -40,8 +41,10 @@ export default function AdminUsuarios() {
   const [msg, setMsg]       = useState('')
 
   const load = async () => {
+    setLoading(true)
     const r = await fetch('/api/usuarios')
     if (r.ok) setUsers(await r.json())
+    setLoading(false)
   }
   useEffect(() => { load() }, [])
 
@@ -93,6 +96,11 @@ export default function AdminUsuarios() {
         <p className="mb-4 font-body text-[0.8rem] text-red-400 bg-red-500/[0.08] px-4 py-2.5 rounded-lg">{msg}</p>
       )}
 
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-6 h-6 border-2 border-[#c8b99a]/30 border-t-[#c8b99a] rounded-full animate-spin" />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
         {users.length === 0 && (
           <p className="text-center py-16 font-body text-[0.85rem] text-[#444]">Nenhum usuário encontrado.</p>
@@ -133,6 +141,7 @@ export default function AdminUsuarios() {
           </div>
         ))}
       </div>
+      )}
 
       {/* Modal */}
       {modal && (
