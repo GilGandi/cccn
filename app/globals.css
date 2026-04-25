@@ -39,3 +39,12 @@ body {
 .delay-700  { animation-delay: 0.7s; }
 .delay-900  { animation-delay: 0.9s; }
 .delay-1100 { animation-delay: 1.1s; }
+
+/* Transição suave de entrada nas páginas */
+main {
+  animation: pageIn 0.5s ease both;
+}
+@keyframes pageIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

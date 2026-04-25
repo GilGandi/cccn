@@ -7,15 +7,11 @@ import { prisma } from '@/lib/prisma'
 
 function embedUrl(url: string, tipo: string): string | null {
   if (tipo === 'spotify') {
-    // https://open.spotify.com/playlist/ID → https://open.spotify.com/embed/playlist/ID
     return url.replace('open.spotify.com/', 'open.spotify.com/embed/')
-              .replace('/playlist/', '/playlist/')
   }
   if (tipo === 'youtube') {
-    // Extrai playlist ID do YouTube e gera embed
     const match = url.match(/[?&]list=([^&]+)/)
     if (match) return `https://www.youtube.com/embed/videoseries?list=${match[1]}`
-    // Vídeo simples
     const vid = url.match(/(?:v=|youtu\.be\/)([^&?]+)/)
     if (vid) return `https://www.youtube.com/embed/${vid[1]}`
   }
@@ -32,7 +28,8 @@ export default async function Louvor() {
     <main className="bg-[#0a0a0a] text-[#f0ede8]">
       <Navbar />
 
-      <div style={{ borderBottom: '1px solid rgba(240,237,232,0.12)' }} className="relative overflow-hidden pt-40 pb-16 px-6 sm:px-10 lg:px-16 max-w-[1200px] mx-auto">
+      <div style={{ borderBottom: '1px solid rgba(240,237,232,0.12)' }}
+        className="relative overflow-hidden pt-40 pb-16 px-6 sm:px-10 lg:px-16 max-w-[1200px] mx-auto">
         <WoodCross opacity={0.03} />
         <div className="relative z-10">
           <span className="font-body text-[0.62rem] tracking-[0.3em] uppercase text-[#c8b99a] mb-4 block">Música</span>
@@ -69,16 +66,33 @@ export default async function Louvor() {
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     </a>
                   </div>
+
                   {embed ? (
-                    <iframe
-                      src={embed}
-                      width="100%"
-                      height={p.tipo === 'spotify' ? 380 : 315}
-                      frameBorder="0"
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      loading="lazy"
-                      style={{ borderRadius: '12px', border: '1px solid rgba(240,237,232,0.08)' }}
-                    />
+                    p.tipo === 'youtube' ? (
+                      /* YouTube — 16:9 responsivo */
+                      <div className="relative w-full rounded-xl overflow-hidden border border-white/[0.06]"
+                        style={{ aspectRatio: '16 / 9' }}>
+                        <iframe
+                          src={embed}
+                          className="absolute inset-0 w-full h-full"
+                          frameBorder="0"
+                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                          allowFullScreen
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : (
+                      /* Spotify — altura fixa */
+                      <iframe
+                        src={embed}
+                        width="100%"
+                        height={380}
+                        frameBorder="0"
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy"
+                        style={{ borderRadius: '12px', border: '1px solid rgba(240,237,232,0.08)' }}
+                      />
+                    )
                   ) : (
                     <a href={p.url} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-3 p-5 rounded-xl border border-white/[0.08] bg-[#111] hover:border-[#c8b99a]/30 transition-all">
