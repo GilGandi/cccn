@@ -3,7 +3,7 @@ import { requireAuth, canManageRole } from '@/lib/apiAuth'
 import { parseJson } from '@/lib/parseJson'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import { isValidCuid, isValidEmail } from '@/lib/validators'
+import { isValidCuid } from '@/lib/validators'
 
 type Params = Promise<{ id: string }>
 
@@ -27,11 +27,11 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
 
   const parsed = await parseJson(req)
   if (!parsed.ok) return parsed.response
-  const { name, email, password } = parsed.data
+  const { name, username, password } = parsed.data
 
   if (!name?.trim()) return NextResponse.json({ error: 'Nome é obrigatório.' }, { status: 400 })
-  if (!email?.trim() || !isValidEmail(email))
-    return NextResponse.json({ error: 'E-mail inválido.' }, { status: 400 })
+  if (!username?.trim() || !/^[a-z0-9._-]{3,50}$/i.test(username))
+    return NextResponse.json({ error: 'Username inválido.' }, { status: 400 })
   if (password && (typeof password !== 'string' || password.length < 8 || password.length > 200))
     return NextResponse.json({ error: 'Senha deve ter entre 8 e 200 caracteres.' }, { status: 400 })
 
@@ -44,7 +44,7 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   if (password?.trim()) data.password = await bcrypt.hash(password, 12)
 
   const updated = await prisma.user.update({ where: { id }, data })
-  return NextResponse.json({ ok: true, id: updated.id, name: updated.name, email: updated.email })
+  return NextResponse.json({ ok: true, id: updated.id, name: updated.name, username: updated.username })
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Params }) {

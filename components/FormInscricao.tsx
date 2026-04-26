@@ -52,7 +52,7 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (v.length < 3) { setSugestoes([]); setShowSug(false); return }
     debounceRef.current = setTimeout(async () => {
-      const r = await fetch(`/api/participantes?q=${encodeURIComponent(v)}`)
+      const r = await fetch(`/api/participantes/busca?q=${encodeURIComponent(v)}`)
       if (r.ok) {
         const data = await r.json()
         setSugestoes(data)
@@ -62,11 +62,13 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
   }
 
   const selectSugestao = (p: any) => {
+    // Apenas id e nome vêm do servidor público — dados pessoais o usuário preenche
     setSelectedPart(p)
     setNome(p.nome)
-    setTelefone(p.telefone || '')
-    setSexo(p.sexo || '')
-    setIdade(p.idade?.toString() || '')
+    // Limpa campos para o usuário confirmar/corrigir seus dados
+    setTelefone('')
+    setSexo('')
+    setIdade('')
     setSugestoes([]); setShowSug(false)
   }
 
@@ -75,8 +77,16 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
     if (vagasRestantes !== null && vagasRestantes <= 0) { setMsg('Vagas esgotadas.'); return }
     setSaving(true); setMsg('')
 
+    // Envia participanteId para reutilizar cadastro existente
+    // + dados atualizados (que podem ter mudado desde o último evento)
     const body = selectedPart
-      ? { participanteId: selectedPart.id }
+      ? {
+          participanteId: selectedPart.id,
+          // Atualiza dados se o usuário preencheu
+          ...(telefone ? { telefone } : {}),
+          ...(sexo ? { sexo } : {}),
+          ...(idade ? { idade: Number(idade) } : {}),
+        }
       : { nome, telefone, sexo, idade: idade ? Number(idade) : null }
 
     const r = await fetch(`/api/eventos-inscricao/${eventoId}/inscricoes`, {
@@ -135,7 +145,8 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
         )}
       </div>
 
-      {!selectedPart && (
+      {/* Campos sempre visíveis — dados pessoais nunca vêm do servidor público */}
+      {true && (
         <>
           {/* Telefone */}
           <div>

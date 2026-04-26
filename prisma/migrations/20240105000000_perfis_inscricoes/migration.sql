@@ -1,9 +1,38 @@
--- Adicionar username e perfilId ao User, manter email como fallback temporário
+-- Adicionar username como nullable primeiro
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "username" TEXT;
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "perfilId" TEXT;
 
--- Preencher username com base no email (parte antes do @) para usuários existentes
-UPDATE "User" SET "username" = split_part(email, '@', 1) WHERE "username" IS NULL;
+-- Preencher username para usuários existentes
+-- Usa email se existir, senão usa id como fallback
+DO $$
+BEGIN
+  -- Tenta usar email se a coluna existir
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='User' AND column_name='email') THEN
+    UPDATE "User" SET "username" = lower(split_part(email, '@', 1))
+    WHERE "username" IS NULL AND email IS NOT NULL;
+  END IF;
+  -- Fallback: usa parte do id para usuários que ainda não têm username
+  UPDATE "User" SET "username" = 'user_' || lower(substring(id, 2, 8))
+  WHERE "username" IS NULL;
+END $$;
+
+-- Garantir unicidade antes de tornar NOT NULL
+-- Resolver possíveis duplicatas adicionando sufixo
+DO $$
+DECLARE
+  r RECORD;
+  counter INT;
+BEGIN
+  FOR r IN SELECT username, array_agg(id ORDER BY "createdAt") AS ids
+           FROM "User" GROUP BY username HAVING count(*) > 1
+  LOOP
+    counter := 1;
+    FOR i IN 2..array_length(r.ids, 1) LOOP
+      UPDATE "User" SET username = username || '_' || counter WHERE id = r.ids[i];
+      counter := counter + 1;
+    END LOOP;
+  END LOOP;
+END $$;
 
 -- Tornar username obrigatório e único
 ALTER TABLE "User" ALTER COLUMN "username" SET NOT NULL;
@@ -23,20 +52,21 @@ CREATE TABLE IF NOT EXISTS "Perfil" (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "Perfil_nome_key" ON "Perfil"("nome");
 
--- Seed: perfis de sistema (não deletáveis)
+-- Seed: perfis de sistema
 INSERT INTO "Perfil" ("id", "nome", "descricao", "permissoes", "sistema", "updatedAt") VALUES
   ('perfil_superadmin', 'Super Admin', 'Acesso total ao sistema. Não pode ser excluído.', '{"agenda":true,"avisos":true,"galeria":true,"palavras":true,"louvor":true,"lideres":true,"usuarios":true,"configuracoes":true,"perfis":true,"inscricoes":true,"participantes":true}', true, NOW()),
   ('perfil_admin', 'Administrador', 'Acesso total exceto gerenciar Super Admins e Perfis do sistema.', '{"agenda":true,"avisos":true,"galeria":true,"palavras":true,"louvor":true,"lideres":true,"usuarios":true,"configuracoes":true,"perfis":false,"inscricoes":true,"participantes":true}', true, NOW()),
-  ('perfil_editor', 'Editor', 'Gerencia conteúdo. Não acessa Usuários (exceto próprio perfil) nem Configurações.', '{"agenda":true,"avisos":true,"galeria":true,"palavras":true,"louvor":true,"lideres":false,"usuarios":false,"configuracoes":false,"perfis":false,"inscricoes":true,"participantes":true}', true, NOW())
+  ('perfil_editor', 'Editor', 'Gerencia conteúdo. Não acessa Usuários nem Configurações.', '{"agenda":true,"avisos":true,"galeria":true,"palavras":true,"louvor":true,"lideres":false,"usuarios":false,"configuracoes":false,"perfis":false,"inscricoes":true,"participantes":true}', true, NOW())
 ON CONFLICT ("nome") DO NOTHING;
 
--- Vincular usuários SUPERADMIN ao perfil Super Admin
+-- Vincular usuários ao perfil correto
 UPDATE "User" SET "perfilId" = 'perfil_superadmin' WHERE "role" = 'SUPERADMIN' AND "perfilId" IS NULL;
 UPDATE "User" SET "perfilId" = 'perfil_admin'      WHERE "role" = 'ADMIN'      AND "perfilId" IS NULL;
 UPDATE "User" SET "perfilId" = 'perfil_editor'     WHERE "role" = 'EDITOR'     AND "perfilId" IS NULL;
 
 -- Foreign key
-ALTER TABLE "User" ADD CONSTRAINT IF NOT EXISTS "User_perfilId_fkey"
+ALTER TABLE "User" DROP CONSTRAINT IF EXISTS "User_perfilId_fkey";
+ALTER TABLE "User" ADD CONSTRAINT "User_perfilId_fkey"
   FOREIGN KEY ("perfilId") REFERENCES "Perfil"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- Participantes
@@ -84,8 +114,10 @@ CREATE TABLE IF NOT EXISTS "Inscricao" (
 CREATE UNIQUE INDEX IF NOT EXISTS "Inscricao_participanteId_eventoId_key"
   ON "Inscricao"("participanteId", "eventoId");
 
+ALTER TABLE "Inscricao" DROP CONSTRAINT IF EXISTS "Inscricao_participanteId_fkey";
+ALTER TABLE "Inscricao" DROP CONSTRAINT IF EXISTS "Inscricao_eventoId_fkey";
+
 ALTER TABLE "Inscricao" ADD CONSTRAINT "Inscricao_participanteId_fkey"
   FOREIGN KEY ("participanteId") REFERENCES "Participante"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
 ALTER TABLE "Inscricao" ADD CONSTRAINT "Inscricao_eventoId_fkey"
   FOREIGN KEY ("eventoId") REFERENCES "EventoInscricao"("id") ON DELETE CASCADE ON UPDATE CASCADE;

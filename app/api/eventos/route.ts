@@ -5,6 +5,7 @@ import { parseJson } from '@/lib/parseJson'
 import { requireAuth } from '@/lib/apiAuth'
 import { prisma } from '@/lib/prisma'
 import { isValidCuid } from '@/lib/validators'
+import { gerarOcorrencias } from '@/lib/domain/rules'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -27,19 +28,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(eventos)
 }
 
-function gerarOcorrencias(dataInicio: Date, recorrencia: string, dataFim: Date | null): Date[] {
-  if (recorrencia === 'NENHUMA') return [dataInicio]
-  const fim = dataFim ?? (() => { const d = new Date(dataInicio); d.setMonth(d.getMonth() + 3); return d })()
-  const datas: Date[] = []
-  const atual = new Date(dataInicio)
-  while (atual <= fim) {
-    datas.push(new Date(atual))
-    if (recorrencia === 'SEMANAL')   atual.setDate(atual.getDate() + 7)
-    if (recorrencia === 'QUINZENAL') atual.setDate(atual.getDate() + 14)
-    if (recorrencia === 'MENSAL')    atual.setMonth(atual.getMonth() + 1)
-  }
-  return datas.slice(0, 52)
-}
+// gerarOcorrencias moved to lib/domain/rules
 
 const RECORRENCIAS = ['NENHUMA','SEMANAL','QUINZENAL','MENSAL']
 
