@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import Navbar from '@/components/Navbar'
@@ -39,7 +40,7 @@ export default async function EventoPage({ params }: Props) {
           {/* Foto */}
           {evento.fotoUrl && (
             <div className="relative w-full rounded-xl overflow-hidden mb-8 border border-white/[0.06]" style={{ aspectRatio: '16/9' }}>
-              <img src={evento.fotoUrl} alt={evento.titulo} className="w-full h-full object-cover" />
+              <Image src={evento.fotoUrl || ""} alt={evento.titulo} fill className="object-cover" unoptimized />
             </div>
           )}
 

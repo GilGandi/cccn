@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic'
 
 import type { Metadata } from 'next'
 import AdminProviders from './providers'

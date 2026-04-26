@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { normalizarNome } from '@/lib/domain/rules'
 
 export const participanteRepository = {
   async search(q: string, take = 50) {
@@ -36,14 +37,12 @@ export const participanteRepository = {
       take: 10,
     })
     // Comparar nome normalizado
-    const { normalizarNome } = await import('@/lib/domain/rules')
     return candidatos.find(p => normalizarNome(p.nome) === nomeNorm) ?? null
   },
 
   async findByNomeApenas(nomeNorm: string) {
     // Sem telefone: busca só por nome normalizado (menos confiável)
     const todos = await prisma.participante.findMany({ take: 500 })
-    const { normalizarNome } = await import('@/lib/domain/rules')
     return todos.find(p => normalizarNome(p.nome) === nomeNorm) ?? null
   },
 

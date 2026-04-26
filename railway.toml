@@ -5,6 +5,10 @@ buildCommand = "npm install --legacy-peer-deps && npx prisma generate && bash sc
 [build.nixpacksPlan.phases.setup]
 nixPkgs = ["nodejs_20"]
 
+[build.nixpacksPlan.variables]
+NEXT_TELEMETRY_DISABLED = "1"
+PRISMA_DISABLE_WARNINGS = "true"
+
 [deploy]
 startCommand = "npx next start -p $PORT"
 restartPolicyType = "on_failure"
