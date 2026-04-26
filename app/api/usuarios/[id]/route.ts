@@ -35,12 +35,14 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   if (password && (typeof password !== 'string' || password.length < 8 || password.length > 200))
     return NextResponse.json({ error: 'Senha deve ter entre 8 e 200 caracteres.' }, { status: 400 })
 
-  const emailLower = email.toLowerCase().trim()
-  const conflict = await prisma.user.findFirst({ where: { email: emailLower, NOT: { id } } })
-  if (conflict) return NextResponse.json({ error: 'E-mail já está em uso.' }, { status: 400 })
+  const usernameLower = username.toLowerCase().trim()
+
+  // Verificar conflito de username
+  const conflict = await prisma.user.findFirst({ where: { username: usernameLower, NOT: { id } } })
+  if (conflict) return NextResponse.json({ error: 'Username já está em uso.' }, { status: 400 })
 
   // Role NUNCA é alterável por este endpoint
-  const data: any = { name: name.trim().slice(0, 100), email: emailLower }
+  const data: any = { name: name.trim().slice(0, 100), username: usernameLower }
   if (password?.trim()) data.password = await bcrypt.hash(password, 12)
 
   const updated = await prisma.user.update({ where: { id }, data })
