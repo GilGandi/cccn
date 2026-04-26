@@ -20,9 +20,9 @@ export const inscricaoRepository = {
     return prisma.inscricao.count({ where: { eventoId } })
   },
 
-  async create(participanteId: string, eventoId: string) {
+  async create(participanteId: string, eventoId: string, anexoUrl?: string | null) {
     return prisma.inscricao.create({
-      data: { participanteId, eventoId },
+      data: { participanteId, eventoId, ...(anexoUrl ? { anexoUrl } : {}) },
       include: { participante: true },
     })
   },

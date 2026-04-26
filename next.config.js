@@ -22,7 +22,7 @@ const nextConfig = {
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://res.cloudinary.com https://i.ytimg.com",
       "media-src 'self' https://res.cloudinary.com",
-      "connect-src 'self'",
+      "connect-src 'self' https://res.cloudinary.com",
       "frame-src https://www.google.com https://open.spotify.com https://www.youtube.com https://youtube.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",

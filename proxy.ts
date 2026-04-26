@@ -28,10 +28,6 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL('/admin/agenda', req.url))
   }
 
-  // /admin/perfis: apenas SUPERADMIN
-  if ((pathname === '/admin/perfis' || pathname.startsWith('/admin/perfis/')) && role !== 'SUPERADMIN') {
-    return NextResponse.redirect(new URL('/admin/agenda', req.url))
-  }
 
   return NextResponse.next()
 }

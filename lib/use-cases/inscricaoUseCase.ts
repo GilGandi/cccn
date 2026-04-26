@@ -18,6 +18,7 @@ interface InscricaoInput {
   telefone?: string
   sexo?: string
   idade?: number | null
+  anexoUrl?: string | null
 }
 
 export async function executarInscricao(eventoId: string, input: InscricaoInput) {
@@ -109,7 +110,13 @@ export async function executarInscricao(eventoId: string, input: InscricaoInput)
   const dup = await inscricaoRepository.findDuplicate(participanteId, eventoId)
   if (dup) return { ok: false, error: 'Já inscrito neste evento.', inscricaoId: dup.id, status: 400 }
 
-  // 4. Criar inscrição
-  const inscricao = await inscricaoRepository.create(participanteId, eventoId)
+  // 4. Validar anexo se o evento exige/aceita
+  const anexo = input.anexoUrl?.trim() || null
+  if (anexo && !anexo.startsWith('https://res.cloudinary.com/')) {
+    return { ok: false, error: 'URL de anexo inválida.', status: 400 }
+  }
+
+  // 5. Criar inscrição
+  const inscricao = await inscricaoRepository.create(participanteId, eventoId, anexo)
   return { ok: true, inscricao }
 }

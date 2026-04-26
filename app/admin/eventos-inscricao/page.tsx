@@ -14,7 +14,7 @@ const emptyForm = {
   titulo: '', descricao: '', fotoUrl: '', dataEncerramento: '',
   datas: [] as string[], novaData: '',
   telefoneObrig: false, sexoObrig: false, idadeObrig: false,
-  vagas: '', ativo: true,
+  campoAnexoLabel: '', vagas: '', ativo: true,
 }
 
 export default function AdminEventosInscricao() {
@@ -38,7 +38,7 @@ export default function AdminEventosInscricao() {
 
   const openNovo = () => { setForm(emptyForm); setEditId(null); setMsg(''); setModal('novo') }
   const openEditar = (ev: Evento) => {
-    setForm({ ...emptyForm, titulo: ev.titulo, fotoUrl: ev.fotoUrl || '', dataEncerramento: ev.dataEncerramento.slice(0, 10), vagas: ev.vagas?.toString() || '', ativo: ev.ativo })
+    setForm({ ...emptyForm, titulo: ev.titulo, fotoUrl: ev.fotoUrl || '', dataEncerramento: ev.dataEncerramento.slice(0, 10), vagas: ev.vagas?.toString() || '', ativo: ev.ativo, campoAnexoLabel: (ev as any).campoAnexoLabel || '' })
     setEditId(ev.id); setMsg(''); setModal('editar')
   }
   const openInscritos = async (ev: Evento) => {
@@ -222,6 +222,17 @@ export default function AdminEventosInscricao() {
                 ))}
               </div>
             </div>
+            {/* Campo de anexo */}
+            <div>
+              <label className={lbl}>Campo de anexo (opcional)</label>
+              <input className={inp} placeholder="Ex: Comprovante de pagamento, RG, Declaração..."
+                value={form.campoAnexoLabel}
+                onChange={e => setForm({ ...form, campoAnexoLabel: e.target.value })} />
+              <p className="font-body text-[0.6rem] text-[#555] mt-1">
+                Se preenchido, aparece como campo opcional no formulário de inscrição. Aceita imagem ou PDF até 5MB.
+              </p>
+            </div>
+
             {/* Ativo */}
             <label className="flex items-center gap-2.5 cursor-pointer select-none">
               <div className={`w-9 h-5 rounded-full transition-colors relative ${form.ativo ? 'bg-[#c8b99a]' : 'bg-white/10'}`}

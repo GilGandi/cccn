@@ -8,6 +8,7 @@ interface Props {
   telefoneObrig: boolean
   sexoObrig: boolean
   idadeObrig: boolean
+  campoAnexoLabel: string | null
   vagasRestantes: number | null
 }
 
@@ -34,7 +35,7 @@ function mascaraTelefone(v: string): string {
 const inp = "w-full bg-[#111] border border-white/[0.08] text-[#f0ede8] font-body text-[0.9rem] px-4 py-3 rounded-md outline-none focus:border-[#c8b99a]/60 transition-colors placeholder:text-[#444]"
 const lbl = "block font-body text-[0.65rem] tracking-[0.18em] uppercase text-[#888480] mb-2"
 
-export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sexoObrig, idadeObrig, vagasRestantes }: Props) {
+export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sexoObrig, idadeObrig, campoAnexoLabel, vagasRestantes }: Props) {
   const [nome, setNome]         = useState('')
   const [telefone, setTelefone] = useState('')
   const [sexo, setSexo]         = useState('')
@@ -44,6 +45,9 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
   const [saving, setSaving]     = useState(false)
   const [msg, setMsg]           = useState('')
   const [sucesso, setSucesso]   = useState(false)
+  const [anexoUrl, setAnexoUrl]   = useState('')
+  const [anexoNome, setAnexoNome] = useState('')
+  const [anexoEnv, setAnexoEnv]   = useState(false)
   const [jaCadastrado, setJaCadastrado] = useState<{ nome: string } | null>(null)
 
   useEffect(() => {
@@ -59,10 +63,14 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
 
     setSaving(true); setMsg('')
 
+    // Upload do anexo se fornecido
+    let anexoUrlFinal = anexoUrl || null
+    if (campoAnexoLabel && anexoEnv && !anexoUrl) { setMsg('Envie o arquivo antes de confirmar.'); setSaving(false); return }
+
     const r = await fetch(`/api/eventos-inscricao/${eventoId}/inscricoes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, telefone, sexo, idade: idade ? Number(idade) : null }),
+      body: JSON.stringify({ nome, telefone, sexo, idade: idade ? Number(idade) : null, anexoUrl: anexoUrlFinal }),
     })
     const d = await r.json()
 
@@ -132,6 +140,38 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
           <input type="number" min="0" max="150" className={inp} placeholder="Ex: 25" value={idade}
             onChange={e => setIdade(e.target.value)} />
         </div>
+
+        {/* Campo de Anexo */}
+        {campoAnexoLabel && (
+          <div>
+            <label className={lbl}>{campoAnexoLabel} (opcional)</label>
+            {!anexoUrl ? (
+              <div>
+                <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    if (file.size > 5 * 1024 * 1024) { setMsg('Arquivo muito grande. Máximo 5MB.'); return }
+                    setAnexoEnv(true); setMsg('')
+                    const fd = new FormData(); fd.append('file', file)
+                    const r = await fetch(`/api/upload-inscricao?eventoId=${eventoId}`, { method: 'POST', body: fd })
+                    const d = await r.json()
+                    if (r.ok) { setAnexoUrl(d.url); setAnexoNome(file.name) }
+                    else { setMsg(d.error || 'Erro no upload.'); setAnexoEnv(false) }
+                  }}
+                  className="w-full font-body text-[0.82rem] text-[#888480] file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-[#c8b99a]/10 file:text-[#c8b99a] file:font-body file:text-[0.68rem] file:tracking-widest file:uppercase hover:file:bg-[#c8b99a]/20 cursor-pointer" />
+                <p className="font-body text-[0.6rem] text-[#555] mt-1">JPEG, PNG, WebP ou PDF · máx. 5MB</p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-[#c8b99a]/[0.06] border border-[#c8b99a]/20">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-[#c8b99a] shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+                <span className="font-body text-[0.78rem] text-[#f0ede8] flex-1 truncate">{anexoNome}</span>
+                <button type="button" onClick={() => { setAnexoUrl(''); setAnexoNome(''); setAnexoEnv(false) }}
+                  className="font-body text-[0.65rem] text-[#555] hover:text-red-400 transition-colors">Remover</button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Checkbox LGPD */}
         <div className={`p-4 rounded-xl border transition-all ${lgpdOk ? 'border-[#c8b99a]/30 bg-[#c8b99a]/[0.04]' : 'border-white/[0.08] bg-white/[0.02]'}`}>

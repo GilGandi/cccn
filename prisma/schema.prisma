@@ -156,6 +156,7 @@ model EventoInscricao {
   dataEncerramento DateTime
   ativo            Boolean   @default(true)
   vagas            Int?      // null = ilimitado
+  campoAnexoLabel  String?   // null = sem campo de anexo; valor = label do campo
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   inscricoes       Inscricao[]

@@ -85,6 +85,7 @@ export default async function EventoPage({ params }: Props) {
               telefoneObrig={evento.telefoneObrig}
               sexoObrig={evento.sexoObrig}
               idadeObrig={evento.idadeObrig}
+              campoAnexoLabel={(evento as any).campoAnexoLabel || null}
               vagasRestantes={evento.vagas ? evento.vagas - evento._count.inscricoes : null}
             />
           )}
