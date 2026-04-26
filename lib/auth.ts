@@ -62,24 +62,45 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // No login inicial — preenche com dados do authorize
       if (user) {
-        token.id          = (user as any).id
-        token.username    = (user as any).username
-        token.role        = (user as any).role
-        token.perfilId    = (user as any).perfilId
-        token.perfilNome  = (user as any).perfilNome
-        token.permissoes  = (user as any).permissoes
+        token.id         = (user as any).id
+        token.username   = (user as any).username
+        token.role       = (user as any).role
+        token.perfilId   = (user as any).perfilId
+        token.perfilNome = (user as any).perfilNome
+        token.permissoes = (user as any).permissoes
       }
+
+      // A cada refresh do token — busca role atualizado do banco
+      // Isso garante que mudanças de role refletem sem precisar fazer novo login
+      if (!user && token.id) {
+        try {
+          const fresh = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true, perfilId: true, perfil: { select: { nome: true, permissoes: true } } },
+          })
+          if (fresh) {
+            token.role       = fresh.role
+            token.perfilId   = fresh.perfilId
+            token.perfilNome = fresh.perfil?.nome
+            token.permissoes = fresh.perfil?.permissoes ? JSON.parse(fresh.perfil.permissoes) : {}
+          }
+        } catch {
+          // Se o banco não estiver disponível, mantém o token existente
+        }
+      }
+
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id         = token.id
-        session.user.name                = token.name as string
-        ;(session.user as any).username  = token.username
-        ;(session.user as any).role      = token.role
-        ;(session.user as any).perfilId  = token.perfilId
+        (session.user as any).id          = token.id
+        session.user.name                 = token.name as string
+        ;(session.user as any).username   = token.username
+        ;(session.user as any).role       = token.role
+        ;(session.user as any).perfilId   = token.perfilId
         ;(session.user as any).perfilNome = token.perfilNome
         ;(session.user as any).permissoes = token.permissoes
       }
