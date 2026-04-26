@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import { prisma } from '@/lib/prisma'
 import Footer from '@/components/Footer'
@@ -48,12 +49,12 @@ export default async function Home() {
           </p>
           <div className="w-px h-12 my-8 animate-fade-up delay-900" style={{ background: 'linear-gradient(to bottom, transparent, #c8b99a, transparent)' }} />
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto animate-fade-up delay-1100">
-            <a href="/historia" className="px-8 py-3 bg-[#f0ede8] text-[#0a0a0a] font-body font-medium text-[0.72rem] tracking-[0.18em] uppercase hover:bg-[#c8b99a] transition-colors text-center">
+            <Link href="/historia" className="px-8 py-3 bg-[#f0ede8] text-[#0a0a0a] font-body font-medium text-[0.72rem] tracking-[0.18em] uppercase hover:bg-[#c8b99a] transition-colors text-center">
               Nossa história
-            </a>
-            <a href="/agenda" className="px-8 py-3 font-body font-light text-[0.72rem] tracking-[0.18em] uppercase text-[#f0ede8] transition-colors text-center" style={{ border: '1px solid rgba(240,237,232,0.3)' }}>
+            </Link>
+            <Link href="/agenda" className="px-8 py-3 font-body font-light text-[0.72rem] tracking-[0.18em] uppercase text-[#f0ede8] transition-colors text-center" style={{ border: '1px solid rgba(240,237,232,0.3)' }}>
               Ver agenda
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -121,10 +122,10 @@ export default async function Home() {
                   Agenda de <em style={{ color: '#c8b99a' }}>cultos e eventos</em>
                 </h2>
               </div>
-              <a href="/agenda" className="shrink-0 px-6 py-2.5 font-body font-light text-[0.68rem] tracking-[0.18em] uppercase text-[#f0ede8] transition-colors"
+              <Link href="/agenda" className="shrink-0 px-6 py-2.5 font-body font-light text-[0.68rem] tracking-[0.18em] uppercase text-[#f0ede8] transition-colors"
                 style={{ border: '1px solid rgba(240,237,232,0.3)' }}>
                 Ver todos
-              </a>
+              </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
               style={{ border: '1px solid rgba(240,237,232,0.12)', gap: 1, background: 'rgba(240,237,232,0.12)' }}>

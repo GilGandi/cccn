@@ -1,6 +1,7 @@
 export const revalidate = 60
 
 import Image from 'next/image'
+import { safeImageSrc } from '@/lib/safeUrl'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -48,7 +49,7 @@ export default async function Inscricoes() {
                   {/* Imagem ou placeholder */}
                   <div className="relative" style={{ aspectRatio: '1/1' }}>
                     {ev.fotoUrl ? (
-                      <Image src={ev.fotoUrl} alt={ev.titulo} fill className={`object-cover ${bloqueado ? 'grayscale brightness-50' : 'group-hover:scale-105 transition-transform duration-500'}`} unoptimized />
+                      <Image src={safeImageSrc(ev.fotoUrl) || ""} alt={ev.titulo} fill className={`object-cover ${bloqueado ? 'grayscale brightness-50' : 'group-hover:scale-105 transition-transform duration-500'}`} unoptimized />
                     ) : (
                       <div className={`w-full h-full flex items-center justify-center ${bloqueado ? 'bg-[#0e0e0e]' : 'bg-[#111]'}`}>
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-[#333]" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>

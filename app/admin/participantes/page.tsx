@@ -4,6 +4,15 @@ import Modal from '@/components/admin/Modal'
 
 type Participante = { id: string; nome: string; telefone: string | null; sexo: string | null; idade: number | null; _count: { inscricoes: number } }
 
+
+function mascaraTelefone(v: string): string {
+  const d = v.replace(/\D/g, '').slice(0, 11)
+  if (d.length <= 2)  return d.length ? `(${d}` : ''
+  if (d.length <= 6)  return `(${d.slice(0,2)}) ${d.slice(2)}`
+  if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`
+  return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`
+}
+
 const inp = "w-full bg-[#0f0f0f] border border-white/[0.08] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 rounded-md outline-none focus:border-[#c8b99a]/50 transition-colors placeholder:text-[#444]"
 const lbl = "block font-body text-[0.6rem] tracking-[0.18em] uppercase text-[#666] mb-1.5"
 const empty = { nome: '', telefone: '', sexo: '', idade: '' }
@@ -115,7 +124,7 @@ export default function AdminParticipantes() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Telefone</label>
-                <input className={inp} value={form.telefone} onChange={e => setForm({ ...form, telefone: e.target.value })} />
+                <input className={inp} value={form.telefone} maxLength={15} onChange={e => setForm({ ...form, telefone: mascaraTelefone(e.target.value) })} />
               </div>
               <div>
                 <label className={lbl}>Idade</label>

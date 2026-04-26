@@ -27,8 +27,33 @@ export const participanteRepository = {
     })
   },
 
+  async findByNomeETelefone(nomeNorm: string, telefoneNorm: string) {
+    // Busca participante existente por telefone (normalizado) + nome normalizado
+    // Telefone é o identificador mais forte; nome confirma a identidade
+    if (!telefoneNorm) return null
+    const candidatos = await prisma.participante.findMany({
+      where: { telefone: telefoneNorm },
+      take: 10,
+    })
+    // Comparar nome normalizado
+    const { normalizarNome } = await import('@/lib/domain/rules')
+    return candidatos.find(p => normalizarNome(p.nome) === nomeNorm) ?? null
+  },
+
+  async findByNomeApenas(nomeNorm: string) {
+    // Sem telefone: busca só por nome normalizado (menos confiável)
+    const todos = await prisma.participante.findMany({ take: 500 })
+    const { normalizarNome } = await import('@/lib/domain/rules')
+    return todos.find(p => normalizarNome(p.nome) === nomeNorm) ?? null
+  },
+
   async create(data: { nome: string; telefone?: string | null; sexo?: string | null; idade?: number | null }) {
-    return prisma.participante.create({ data })
+    // Normalizar telefone antes de salvar
+    const normalized = {
+      ...data,
+      telefone: data.telefone ? data.telefone.replace(/\D/g, '') : null,
+    }
+    return prisma.participante.create({ data: normalized })
   },
 
   async update(id: string, data: { nome?: string; telefone?: string | null; sexo?: string | null; idade?: number | null }) {

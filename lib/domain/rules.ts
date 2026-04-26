@@ -111,3 +111,25 @@ export function gerarOcorrencias(
 
   return datas
 }
+
+/** Normaliza telefone para comparação: remove tudo exceto dígitos */
+export function normalizarTelefone(tel: string): string {
+  return tel.replace(/\D/g, '')
+}
+
+/** Formata telefone para exibição: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX */
+export function formatarTelefone(tel: string): string {
+  const d = tel.replace(/\D/g, '')
+  if (d.length === 11) return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`
+  if (d.length === 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`
+  return tel // retorna original se formato desconhecido
+}
+
+/** Normaliza nome para comparação: lowercase, sem acentos, espaços normalizados */
+export function normalizarNome(nome: string): string {
+  return nome.trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+}

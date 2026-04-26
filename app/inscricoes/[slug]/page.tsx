@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -31,9 +32,9 @@ export default async function EventoPage({ params }: Props) {
       <div className="max-w-[700px] mx-auto px-6 sm:px-10 pt-40 pb-24">
         <WoodCross opacity={0.025} />
         <div className="relative z-10">
-          <a href="/inscricoes" className="font-body text-[0.65rem] tracking-widest uppercase text-[#555] hover:text-[#c8b99a] transition-colors mb-8 block">
+          <Link href="/inscricoes" className="font-body text-[0.65rem] tracking-widest uppercase text-[#555] hover:text-[#c8b99a] transition-colors mb-8 block">
             ← Todos os eventos
-          </a>
+          </Link>
 
           {/* Foto */}
           {evento.fotoUrl && (
