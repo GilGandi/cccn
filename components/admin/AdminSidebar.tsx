@@ -5,7 +5,9 @@ import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useState } from 'react'
 
-const links = [
+type NavLink = { href: string; label: string; icon: React.ReactNode; minRole?: 'ADMIN' | 'SUPERADMIN' }
+
+const links: NavLink[] = [
   { href: '/admin/agenda',   label: 'Agenda',   icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
   )},
@@ -21,18 +23,27 @@ const links = [
   { href: '/admin/galeria',  label: 'Galeria',   icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
   )},
+  { href: '/admin/eventos-inscricao', label: 'Inscrições',    minRole: undefined as any, icon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+  )},
+  { href: '/admin/participantes', label: 'Participantes', minRole: undefined as any, icon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  )},
+  { href: '/admin/perfis', label: 'Perfis', minRole: 'SUPERADMIN' as any, icon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  )},
   { href: '/admin/lideres',       label: 'Liderança',    icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
   )},
-  { href: '/admin/configuracoes', label: 'Configurações', icon: (
+  { href: '/admin/configuracoes', label: 'Configurações', minRole: 'ADMIN', icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
   )},
-  { href: '/admin/usuarios', label: 'Usuários',  icon: (
+  { href: '/admin/usuarios', label: 'Usuários', minRole: 'ADMIN',  icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
   )},
 ]
 
-function SidebarContent({ path, userName, onNav }: { path: string; userName: string; onNav?: () => void }) {
+function SidebarContent({ path, userName, userRole, onNav }: { path: string; userName: string; userRole: string; onNav?: () => void }) {
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -47,7 +58,11 @@ function SidebarContent({ path, userName, onNav }: { path: string; userName: str
       {/* Nav */}
       <nav className="flex flex-col gap-0.5 p-2.5 flex-1 pt-3">
         <p className="font-body text-[0.55rem] tracking-[0.2em] uppercase text-[#555] px-3 mb-2">Menu</p>
-        {links.map((l) => {
+        {links.filter(l => {
+          if (!l.minRole) return true
+          const levels: Record<string, number> = { EDITOR: 1, ADMIN: 2, SUPERADMIN: 3 }
+          return (levels[userRole] || 0) >= (levels[l.minRole] || 0)
+        }).map((l) => {
           const active = path === l.href || (l.href !== '/admin' && path.startsWith(l.href))
           return (
             <Link key={l.href} href={l.href} onClick={onNav}
@@ -72,7 +87,9 @@ function SidebarContent({ path, userName, onNav }: { path: string; userName: str
           </div>
           <div className="min-w-0">
             <div className="font-body text-[0.75rem] text-[#f0ede8] truncate">{userName}</div>
-            <div className="font-body text-[0.58rem] text-[#555] uppercase tracking-widest">Admin</div>
+            <div className="font-body text-[0.58rem] text-[#555] uppercase tracking-widest">
+              {userRole === 'SUPERADMIN' ? 'Super Admin' : userRole === 'ADMIN' ? 'Administrador' : 'Editor'}
+            </div>
           </div>
         </div>
         <Link href="/" target="_blank" rel="noopener noreferrer" onClick={onNav}
@@ -94,6 +111,7 @@ export default function AdminSidebar() {
   const path = usePathname()
   const { data: session } = useSession()
   const userName = session?.user?.name ?? 'Usuário'
+  const userRole = (session?.user as any)?.role ?? 'EDITOR'
   const [open, setOpen] = useState(false)
   const currentLabel = links.find(l => path === l.href || (l.href !== '/admin' && path.startsWith(l.href)))?.label ?? 'Menu'
 
@@ -101,7 +119,7 @@ export default function AdminSidebar() {
     <>
       {/* ── Desktop sidebar ── */}
       <aside className="hidden lg:flex w-60 shrink-0 bg-[#0c0c0c] border-r border-white/[0.06] flex-col min-h-screen">
-        <SidebarContent path={path} userName={userName} />
+        <SidebarContent path={path} userName={userName} userRole={userRole} />
       </aside>
 
       {/* ── Mobile top bar ── */}
@@ -134,7 +152,7 @@ export default function AdminSidebar() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <SidebarContent path={path} userName={userName} onNav={() => setOpen(false)} />
+              <SidebarContent path={path} userName={userName} userRole={userRole} onNav={() => setOpen(false)} />
             </div>
           </div>
           <style>{`@keyframes slideIn { from { transform: translateX(-100%) } to { transform: translateX(0) } }`}</style>

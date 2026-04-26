@@ -9,7 +9,8 @@ const links = [
   { href: '/lideranca', label: 'Liderança' },
   { href: '/agenda',   label: 'Agenda' },
   { href: '/palavras', label: 'Palavras' },
-  { href: '/louvor',   label: 'Louvor' },
+  { href: '/louvor',       label: 'Louvor' },
+  { href: '/inscricoes', label: 'Inscrições' },
   { href: '/doacoes',  label: 'Doações' },
 ]
 

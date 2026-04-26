@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
-const ADMIN_ONLY = ['/admin/usuarios', '/admin/configuracoes']
+// Rotas que exigem ADMIN ou SUPERADMIN (EDITOR não acessa)
+const ADMIN_ONLY = ['/admin/usuarios', '/admin/configuracoes', '/admin/perfis']
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Login e APIs passam direto
   if (pathname === '/admin/login' || pathname.startsWith('/api/')) {
     return NextResponse.next()
   }
@@ -15,15 +15,21 @@ export async function middleware(req: NextRequest) {
 
   if (!token) {
     const loginUrl = new URL('/admin/login', req.url)
-    // Só inclui callbackUrl se for path relativo e não for o root admin
     if (pathname.startsWith('/admin/') && pathname !== '/admin/login') {
       loginUrl.searchParams.set('callbackUrl', pathname)
     }
     return NextResponse.redirect(loginUrl)
   }
 
-  // Verificação de role para rotas restritas
-  if (ADMIN_ONLY.some(r => pathname === r || pathname.startsWith(r + '/')) && token.role !== 'ADMIN') {
+  const role = (token.role as string) || ''
+
+  // Verificar acesso a rotas restritas
+  if (ADMIN_ONLY.some(r => pathname === r || pathname.startsWith(r + '/')) && role === 'EDITOR') {
+    return NextResponse.redirect(new URL('/admin/agenda', req.url))
+  }
+
+  // /admin/perfis: apenas SUPERADMIN
+  if ((pathname === '/admin/perfis' || pathname.startsWith('/admin/perfis/')) && role !== 'SUPERADMIN') {
     return NextResponse.redirect(new URL('/admin/agenda', req.url))
   }
 

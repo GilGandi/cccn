@@ -8,8 +8,9 @@ datasource db {
 }
 
 enum Role {
+  SUPERADMIN
   ADMIN
-  COLABORADOR
+  EDITOR
 }
 
 enum Recorrencia {
@@ -22,9 +23,11 @@ enum Recorrencia {
 model User {
   id        String   @id @default(cuid())
   name      String
-  email     String   @unique
+  username  String   @unique
   password  String
-  role      Role     @default(COLABORADOR)
+  role      Role     @default(EDITOR)
+  perfilId  String?
+  perfil    Perfil?  @relation("UserPerfil", fields: [perfilId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -107,4 +110,66 @@ model Lider {
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ─── Perfis com permissões customizáveis ─────────────────────────────────────
+
+model Perfil {
+  id          String   @id @default(cuid())
+  nome        String   @unique
+  descricao   String?
+  // Permissões como JSON: { agenda: true, avisos: false, galeria: true, ... }
+  permissoes  String   @default("{}")
+  sistema     Boolean  @default(false) // true = não pode ser deletado (SuperAdmin, Admin, Editor)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]   @relation("UserPerfil")
+}
+
+// ─── Participantes globais (pessoas que se inscrevem em eventos) ──────────────
+
+model Participante {
+  id          String    @id @default(cuid())
+  nome        String
+  telefone    String?
+  sexo        String?   // M | F
+  idade       Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  inscricoes  Inscricao[]
+}
+
+// ─── Eventos de inscrição (diferente da agenda) ───────────────────────────────
+
+model EventoInscricao {
+  id               String    @id @default(cuid())
+  titulo           String
+  descricao        String?
+  fotoUrl          String?
+  slug             String    @unique
+  // Campos obrigatórios na inscrição
+  telefoneObrig    Boolean   @default(false)
+  sexoObrig        Boolean   @default(false)
+  idadeObrig       Boolean   @default(false)
+  // Datas (múltiplas, guardadas como JSON: ["2024-06-01", "2024-06-02"])
+  datas            String    @default("[]")
+  dataEncerramento DateTime
+  ativo            Boolean   @default(true)
+  vagas            Int?      // null = ilimitado
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  inscricoes       Inscricao[]
+}
+
+// ─── Inscrições (vínculo participante ↔ evento) ───────────────────────────────
+
+model Inscricao {
+  id               String          @id @default(cuid())
+  participanteId   String
+  participante     Participante    @relation(fields: [participanteId], references: [id])
+  eventoId         String
+  evento           EventoInscricao @relation(fields: [eventoId], references: [id])
+  createdAt        DateTime        @default(now())
+
+  @@unique([participanteId, eventoId]) // uma inscrição por pessoa por evento
 }

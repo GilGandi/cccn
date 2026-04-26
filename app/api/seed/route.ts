@@ -8,12 +8,12 @@ export async function POST() {
     return NextResponse.json({ error: 'Não disponível em produção.' }, { status: 403 })
   }
 
-  const existing = await prisma.user.findUnique({ where: { email: 'admin@cccn.com.br' } })
+  const existing = await prisma.user.findUnique({ where: { username: 'admin' } })
   if (existing) return NextResponse.json({ message: 'Admin já existe' })
 
   const hash = await bcrypt.hash('cccn@2024', 12)
   const user = await prisma.user.create({
-    data: { name: 'Coordenador Geral', email: 'admin@cccn.com.br', password: hash, role: 'ADMIN' },
+    data: { name: 'Coordenador Geral', username: 'admin', password: hash, role: 'SUPERADMIN', perfilId: 'perfil_superadmin' },
   })
-  return NextResponse.json({ message: 'Admin criado!', email: user.email })
+  return NextResponse.json({ message: 'Admin criado!', username: user.username })
 }

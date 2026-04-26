@@ -4,94 +4,84 @@ import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rateLimit'
 import bcrypt from 'bcryptjs'
 
-// Hash dummy — tempo constante vs. user enumeration
 const DUMMY_HASH = '$2a$12$abcdefghijklmnopqrstuvwxyz012345678901234567890123456789.'
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  session: {
-    strategy: 'jwt',
-    maxAge: 8 * 60 * 60,       // 8 horas
-    updateAge: 60 * 60,        // atualiza a sessão a cada 1h
-  },
+  session: { strategy: 'jwt', maxAge: 8 * 60 * 60, updateAge: 60 * 60 },
   pages: { signIn: '/admin/login' },
-  // Cookies com flags seguras em produção
   useSecureCookies: process.env.NODE_ENV === 'production',
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production'
-        ? '__Secure-next-auth.session-token'
-        : 'next-auth.session-token',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      },
+      name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
     },
     csrfToken: {
-      name: process.env.NODE_ENV === 'production'
-        ? '__Host-next-auth.csrf-token'
-        : 'next-auth.csrf-token',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      },
+      name: process.env.NODE_ENV === 'production' ? '__Host-next-auth.csrf-token' : 'next-auth.csrf-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
     },
   },
   providers: [
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        email:    { label: 'Email',    type: 'email' },
-        password: { label: 'Senha',    type: 'password' },
+        username: { label: 'Usuário', type: 'text' },
+        password: { label: 'Senha',   type: 'password' },
       },
       async authorize(credentials, req) {
-        if (!credentials?.email || !credentials?.password) return null
-        if (typeof credentials.email !== 'string' || typeof credentials.password !== 'string') return null
-        if (credentials.email.length > 254 || credentials.password.length > 200) return null
+        if (!credentials?.username || !credentials?.password) return null
+        if (typeof credentials.username !== 'string' || typeof credentials.password !== 'string') return null
+        if (credentials.username.length > 100 || credentials.password.length > 200) return null
 
-        // Rate limit por IP + por e-mail (bloqueia ataques distribuídos a uma conta)
         const xff = (req as any)?.headers?.['x-forwarded-for']
         const ip = Array.isArray(xff) ? xff[0] : typeof xff === 'string' ? xff.split(',')[0].trim() : 'unknown'
-        const emailLower = credentials.email.toLowerCase().trim()
+        const usernameLower = credentials.username.toLowerCase().trim()
 
-        if (!rateLimit(`login:ip:${ip}`, 10, 15 * 60 * 1000)) {
-          throw new Error('Muitas tentativas. Tente novamente em 15 minutos.')
-        }
-        if (!rateLimit(`login:email:${emailLower}`, 5, 15 * 60 * 1000)) {
-          throw new Error('Conta temporariamente bloqueada. Tente novamente em 15 minutos.')
-        }
+        if (!rateLimit(`login:ip:${ip}`, 10, 15 * 60 * 1000)) throw new Error('Muitas tentativas. Tente novamente em 15 minutos.')
+        if (!rateLimit(`login:user:${usernameLower}`, 5, 15 * 60 * 1000)) throw new Error('Conta temporariamente bloqueada.')
 
-        const user = await prisma.user.findUnique({ where: { email: emailLower } })
+        const user = await prisma.user.findUnique({
+          where: { username: usernameLower },
+          include: { perfil: { select: { id: true, nome: true, permissoes: true } } },
+        })
 
-        // Tempo constante vs. user enumeration
         const hash = user?.password ?? DUMMY_HASH
         const valid = await bcrypt.compare(credentials.password, hash)
-
         if (!user || !valid) return null
 
-        return { id: user.id, name: user.name, email: user.email, role: user.role }
+        return {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          role: user.role,
+          perfilId: user.perfilId,
+          perfilNome: user.perfil?.nome,
+          permissoes: user.perfil?.permissoes ? JSON.parse(user.perfil.permissoes) : {},
+        }
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id   = (user as any).id
-        token.name = user.name
-        token.role = (user as any).role
+        token.id          = (user as any).id
+        token.username    = (user as any).username
+        token.role        = (user as any).role
+        token.perfilId    = (user as any).perfilId
+        token.perfilNome  = (user as any).perfilNome
+        token.permissoes  = (user as any).permissoes
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.name           = token.name as string
-        session.user.email          = token.email as string
-        ;(session.user as any).id   = token.id as string
-        ;(session.user as any).role = token.role as string
+        (session.user as any).id         = token.id
+        session.user.name                = token.name as string
+        ;(session.user as any).username  = token.username
+        ;(session.user as any).role      = token.role
+        ;(session.user as any).perfilId  = token.perfilId
+        ;(session.user as any).perfilNome = token.perfilNome
+        ;(session.user as any).permissoes = token.permissoes
       }
       return session
     },
