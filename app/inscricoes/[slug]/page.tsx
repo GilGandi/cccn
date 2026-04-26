@@ -12,10 +12,13 @@ type Props = { params: Promise<{ slug: string }> }
 export default async function EventoPage({ params }: Props) {
   const { slug } = await params
 
-  const evento = await prisma.eventoInscricao.findUnique({
-    where: { slug },
-    include: { _count: { select: { inscricoes: true } } },
-  })
+  let evento: any = null
+  try {
+    evento = await prisma.eventoInscricao.findUnique({
+      where: { slug },
+      include: { _count: { select: { inscricoes: true } } },
+    })
+  } catch { evento = null }
 
   if (!evento || !evento.ativo) notFound()
 

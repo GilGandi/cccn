@@ -8,11 +8,14 @@ import WoodCross from '@/components/WoodCross'
 import { prisma } from '@/lib/prisma'
 
 export default async function Inscricoes() {
-  const eventos = await prisma.eventoInscricao.findMany({
-    where: { ativo: true },
-    orderBy: { dataEncerramento: 'asc' },
-    include: { _count: { select: { inscricoes: true } } },
-  })
+  let eventos: any[] = []
+  try {
+    eventos = await prisma.eventoInscricao.findMany({
+      where: { ativo: true },
+      orderBy: { dataEncerramento: 'asc' },
+      include: { _count: { select: { inscricoes: true } } },
+    })
+  } catch { eventos = [] }
 
   const hoje = new Date()
 

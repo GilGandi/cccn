@@ -10,7 +10,7 @@ import { safeImageSrc } from '@/lib/safeUrl'
 export default async function Historia() {
   const [cfg, lideres] = await Promise.all([
     getConfigs(),
-    prisma.lider.findMany({ where: { ativo: true }, orderBy: { ordem: 'asc' } }),
+    prisma.lider.findMany({ where: { ativo: true }, orderBy: { ordem: 'asc' } }).catch(() => []),
   ])
 
   return (
