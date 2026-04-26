@@ -1,34 +1,45 @@
 #!/bin/bash
-set -e
 echo "=== Iniciando migração ==="
 
-# Resolver qualquer migration com falha primeiro (P3009)
-PROBE=$(npx prisma migrate deploy 2>&1) || true
+run_deploy() {
+  npx prisma migrate deploy 2>&1
+  return $?
+}
 
-if echo "$PROBE" | grep -q "P3009"; then
-  echo "=== Resolvendo migration com falha ==="
+# Primeira tentativa
+OUTPUT=$(run_deploy)
+CODE=$?
+echo "$OUTPUT"
+
+if [ $CODE -eq 0 ]; then
+  echo "=== OK ==="
+  exit 0
+fi
+
+# P3009: migration com falha registrada
+if echo "$OUTPUT" | grep -q "P3009"; then
+  echo "=== P3009: resolvendo migration com falha ==="
   npx prisma migrate resolve --rolled-back 20240105000000_perfis_inscricoes 2>/dev/null || true
-  npx prisma migrate deploy
-  echo "=== OK ==="
-  exit 0
+  OUTPUT2=$(run_deploy)
+  CODE2=$?
+  echo "$OUTPUT2"
+  [ $CODE2 -eq 0 ] && echo "=== OK ===" && exit 0
 fi
 
-if echo "$PROBE" | grep -q "P3005"; then
-  echo "=== Baseline (primeiro deploy) ==="
+# P3005: banco sem histórico (primeiro deploy com db push anterior)
+if echo "$OUTPUT" | grep -q "P3005"; then
+  echo "=== P3005: fazendo baseline ==="
   for m in 20240101000000_init 20240102000000_recorrencia_playlist \
-            20240103000000_config_lider 20240104000000_roles; do
-    npx prisma migrate resolve --applied "$m" 2>/dev/null || true
+            20240103000000_config_lider 20240104000000_roles \
+            20240105000000_perfis_inscricoes; do
+    npx prisma migrate resolve --applied "$m" 2>/dev/null && echo "  baseline: $m" || true
   done
-  npx prisma migrate deploy
-  echo "=== OK ==="
-  exit 0
+  OUTPUT2=$(run_deploy)
+  CODE2=$?
+  echo "$OUTPUT2"
+  [ $CODE2 -eq 0 ] && echo "=== OK ===" && exit 0
 fi
 
-if echo "$PROBE" | grep -qv "Error\|error"; then
-  echo "=== OK ==="
-  exit 0
-fi
-
-echo "$PROBE"
-echo "=== ERRO ==="
+echo "=== ERRO FATAL na migração ==="
+echo "$OUTPUT"
 exit 1

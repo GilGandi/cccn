@@ -170,6 +170,7 @@ model Inscricao {
   participante     Participante    @relation(fields: [participanteId], references: [id])
   eventoId         String
   evento           EventoInscricao @relation(fields: [eventoId], references: [id])
+  anexoUrl         String?
   createdAt        DateTime        @default(now())
 
   @@unique([participanteId, eventoId]) // uma inscrição por pessoa por evento
