@@ -23,7 +23,7 @@ const links: NavLink[] = [
   { href: '/admin/galeria',  label: 'Galeria',   icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
   )},
-  { href: '/admin/eventos-inscricao', label: 'Inscrições',    minRole: undefined as any, icon: (
+  { href: '/admin/eventos-inscricao', label: 'Eventos',    minRole: undefined as any, icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
   )},
   { href: '/admin/participantes', label: 'Participantes', minRole: undefined as any, icon: (
@@ -43,7 +43,7 @@ const links: NavLink[] = [
   )},
 ]
 
-function SidebarContent({ path, userName, userRole, onNav }: { path: string; userName: string; userRole: string; onNav?: () => void }) {
+function SidebarContent({ path, userName, userRole, perfilNome, onNav }: { path: string; userName: string; userRole: string; perfilNome?: string; onNav?: () => void }) {
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -88,7 +88,7 @@ function SidebarContent({ path, userName, userRole, onNav }: { path: string; use
           <div className="min-w-0">
             <div className="font-body text-[0.75rem] text-[#f0ede8] truncate">{userName}</div>
             <div className="font-body text-[0.58rem] text-[#555] uppercase tracking-widest">
-              {userRole === 'SUPERADMIN' ? 'Super Admin' : userRole === 'ADMIN' ? 'Administrador' : 'Editor'}
+              {perfilNome || (userRole === 'SUPERADMIN' ? 'Super Admin' : userRole === 'ADMIN' ? 'Administrador' : 'Editor')}
             </div>
           </div>
         </div>
@@ -111,7 +111,8 @@ export default function AdminSidebar() {
   const path = usePathname()
   const { data: session } = useSession()
   const userName = session?.user?.name ?? 'Usuário'
-  const userRole = (session?.user as any)?.role ?? 'EDITOR'
+  const userRole   = (session?.user as any)?.role ?? 'EDITOR'
+  const perfilNome = (session?.user as any)?.perfilNome as string | undefined
   const [open, setOpen] = useState(false)
   const currentLabel = links.find(l => path === l.href || (l.href !== '/admin' && path.startsWith(l.href)))?.label ?? 'Menu'
 
@@ -119,7 +120,7 @@ export default function AdminSidebar() {
     <>
       {/* ── Desktop sidebar ── */}
       <aside className="hidden lg:flex w-60 shrink-0 bg-[#0c0c0c] border-r border-white/[0.06] flex-col min-h-screen">
-        <SidebarContent path={path} userName={userName} userRole={userRole} />
+        <SidebarContent path={path} userName={userName} userRole={userRole} perfilNome={perfilNome} />
       </aside>
 
       {/* ── Mobile top bar ── */}
@@ -152,7 +153,7 @@ export default function AdminSidebar() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <SidebarContent path={path} userName={userName} userRole={userRole} onNav={() => setOpen(false)} />
+              <SidebarContent path={path} userName={userName} userRole={userRole} perfilNome={perfilNome} onNav={() => setOpen(false)} />
             </div>
           </div>
           <style>{`@keyframes slideIn { from { transform: translateX(-100%) } to { transform: translateX(0) } }`}</style>

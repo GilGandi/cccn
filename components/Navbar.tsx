@@ -10,7 +10,7 @@ const links = [
   { href: '/agenda',   label: 'Agenda' },
   { href: '/palavras', label: 'Palavras' },
   { href: '/louvor',       label: 'Louvor' },
-  { href: '/inscricoes', label: 'Inscrições' },
+  { href: '/inscricoes', label: 'Eventos' },
   { href: '/doacoes',  label: 'Doações' },
 ]
 

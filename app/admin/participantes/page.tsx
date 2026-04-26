@@ -21,7 +21,7 @@ export default function AdminParticipantes() {
   const [items, setItems]   = useState<Participante[]>([])
   const [loading, setLoading] = useState(true)
   const [busca, setBusca]   = useState('')
-  const [modal, setModal]   = useState<'editar' | null>(null)
+  const [modal, setModal]   = useState<'novo' | 'editar' | null>(null)
   const [form, setForm]     = useState<any>(empty)
   const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -42,6 +42,8 @@ export default function AdminParticipantes() {
     return () => clearTimeout(t)
   }, [busca, load])
 
+  const openNovo = () => { setForm(empty); setEditId(null); setMsg(''); setModal('novo') }
+
   const openEditar = (p: Participante) => {
     setForm({ nome: p.nome, telefone: p.telefone || '', sexo: p.sexo || '', idade: p.idade?.toString() || '' })
     setEditId(p.id); setMsg(''); setModal('editar')
@@ -50,8 +52,10 @@ export default function AdminParticipantes() {
   const save = async () => {
     if (!form.nome.trim() || form.nome.trim().split(' ').length < 2) { setMsg('Informe nome e sobrenome.'); return }
     setSaving(true); setMsg('')
-    const r = await fetch(`/api/participantes/${editId}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    const url    = editId ? `/api/participantes/${editId}` : '/api/participantes'
+    const method = editId ? 'PUT' : 'POST'
+    const r = await fetch(url, {
+      method, headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, idade: form.idade ? Number(form.idade) : null })
     })
     if (r.ok) { setModal(null); load(busca) }
@@ -72,6 +76,10 @@ export default function AdminParticipantes() {
           <h1 className="font-display text-[1.8rem] text-[#f0ede8] leading-tight">Participantes</h1>
           <p className="font-body text-[0.8rem] text-[#555] mt-1">Cadastro global de participantes de eventos</p>
         </div>
+        <button onClick={openNovo}
+          className="px-4 py-2 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all">
+          + Novo participante
+        </button>
       </div>
 
       {/* Busca */}
@@ -115,7 +123,7 @@ export default function AdminParticipantes() {
       )}
 
       {modal && (
-        <Modal title="Editar participante" onClose={() => setModal(null)} size="sm">
+        <Modal title={modal === 'novo' ? 'Novo participante' : 'Editar participante'} onClose={() => setModal(null)} size="sm">
           <div className="flex flex-col gap-4">
             <div>
               <label className={lbl}>Nome completo *</label>
@@ -146,7 +154,7 @@ export default function AdminParticipantes() {
             <div className="flex gap-2 pt-1">
               <button onClick={save} disabled={saving}
                 className="flex-1 py-2.5 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all disabled:opacity-50">
-                {saving ? 'Salvando...' : 'Salvar alterações'}
+                {saving ? 'Salvando...' : modal === 'novo' ? 'Cadastrar' : 'Salvar alterações'}
               </button>
               <button onClick={() => setModal(null)}
                 className="px-5 py-2.5 border border-white/[0.08] text-[#888] font-body text-[0.72rem] tracking-widest uppercase rounded-md hover:text-[#f0ede8] transition-all">
