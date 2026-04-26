@@ -4,7 +4,7 @@ import { getToken } from 'next-auth/jwt'
 // Rotas que exigem ADMIN ou SUPERADMIN (EDITOR não acessa)
 const ADMIN_ONLY = ['/admin/usuarios', '/admin/configuracoes', '/admin/perfis']
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   if (pathname === '/admin/login' || pathname.startsWith('/api/')) {
