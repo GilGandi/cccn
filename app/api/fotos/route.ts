@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.ok) return parsed.response
   const body = parsed.data
 
-  const { url, legenda, galeria } = body
+  const { url, legenda, galeria, categoriaId } = body
   if (!url || !isValidCloudinaryUrl(url))
     return NextResponse.json({ error: 'URL de imagem inválida. Use o upload interno.' }, { status: 400 })
 
