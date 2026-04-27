@@ -49,7 +49,7 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
   const [form, setForm]       = useState<any>({ name:'', username:'', password:'', role:'EDITOR', perfilId:'' })
   const [editId, setEditId]   = useState<string|null>(null)
   const [saving, setSaving]   = useState(false)
-  const [msg, setMsg]         = useState('')
+  const [msg, setMsg]         = useState<any>('')
 
   const load = async () => {
     setLoading(true)
@@ -81,8 +81,8 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
       ? { name:form.name, username:form.username, ...(form.password?{password:form.password}:{}) }
       : { name:form.name, username:form.username, password:form.password, role:form.role, perfilId:form.perfilId||null }
     const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
-    if (r.ok) { setModal(null); load() }
-    else { const d=await r.json(); setMsg(d.error||'Erro ao salvar.') }
+    if (r.ok) { setModal(null); setMsg(''); load() }
+    else { try { setMsg(await r.json()) } catch { setMsg('Erro ao salvar.') } }
     setSaving(false)
   }
 
@@ -244,8 +244,8 @@ function AbaPerfis({ perfis, load, isSuperAdmin }: { perfis: Perfil[]; load: () 
     const url = editId ? `/api/perfis/${editId}` : '/api/perfis'
     const method = editId ? 'PUT' : 'POST'
     const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify({nome,descricao:desc,permissoes:perms}) })
-    if (r.ok) { setModal(null); load() }
-    else { const d=await r.json(); setMsg(d.error||'Erro ao salvar.') }
+    if (r.ok) { setModal(null); setMsg(''); load() }
+    else { try { setMsg(await r.json()) } catch { setMsg('Erro ao salvar.') } }
     setSaving(false)
   }
 

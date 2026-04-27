@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { requireAdmin } from '@/lib/apiAuth'
 import { parseJson } from '@/lib/parseJson'
 import { userRepository } from '@/lib/repositories/userRepository'
@@ -11,8 +12,9 @@ export async function GET(req: NextRequest) {
     const users = await userRepository.findAll()
     return NextResponse.json(users)
   } catch (e: any) {
-    console.error('[GET /api/usuarios]', e?.message)
-    return NextResponse.json({ error: 'Erro ao buscar usuários.' }, { status: 500 })
+    const detail = `${e?.message || 'unknown'} | code: ${e?.code || 'none'} | ${e?.meta ? JSON.stringify(e.meta) : ''}`
+    console.error('[GET /api/usuarios]', detail)
+    return NextResponse.json({ error: 'Erro ao buscar usuários.', detail }, { status: 500 })
   }
 }
 
@@ -35,6 +37,7 @@ export async function POST(req: NextRequest) {
     if (e?.message?.includes('invalid input value for enum')) {
       return NextResponse.json({ error: 'Role inválido. Refaça login e tente novamente.' }, { status: 400 })
     }
-    return NextResponse.json({ error: 'Erro interno ao criar usuário.' }, { status: 500 })
+    const detail = `${e?.message || 'unknown'} | code: ${e?.code || 'none'} | ${e?.meta ? JSON.stringify(e.meta) : ''}`
+    return NextResponse.json({ error: 'Erro interno ao criar usuário.', detail }, { status: 500 })
   }
 }

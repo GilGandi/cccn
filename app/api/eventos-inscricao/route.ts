@@ -1,6 +1,7 @@
 export const revalidate = 60
 
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { requireAuth } from '@/lib/apiAuth'
 import { parseJson } from '@/lib/parseJson'
 import { prisma } from '@/lib/prisma'

@@ -2,13 +2,17 @@
 import { useState } from 'react'
 
 interface Props {
-  error: string | null
+  error: string | null | { error?: string; detail?: string; message?: string }
   titulo?: string
 }
 
 export default function ErrorBox({ error, titulo = 'Houve um erro' }: Props) {
   const [expandido, setExpandido] = useState(false)
   const [copiado, setCopiado] = useState(false)
+
+  // Normalizar: aceita string simples ou objeto { error, detail }
+  const texto  = typeof error === 'string' ? error : (error?.error || error?.message || 'Erro desconhecido')
+  const detalhe = typeof error === 'object' && error !== null ? (error as any).detail || null : null
 
   if (!error) return null
 
@@ -33,7 +37,7 @@ export default function ErrorBox({ error, titulo = 'Houve um erro' }: Props) {
           <line x1="12" y1="8" x2="12" y2="12"/>
           <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
-        <span className="font-body text-[0.82rem] text-red-400 flex-1">{titulo}</span>
+        <span className="font-body text-[0.82rem] text-red-400 flex-1">{texto}</span>
         <svg
           width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           strokeWidth="2" strokeLinecap="round"
@@ -68,7 +72,7 @@ export default function ErrorBox({ error, titulo = 'Houve um erro' }: Props) {
           </div>
           <textarea
             readOnly
-            value={error}
+            value={detalhe || (typeof error === 'string' ? error : JSON.stringify(error, null, 2))}
             rows={5}
             className="w-full bg-black/40 border border-red-500/20 rounded-lg px-3 py-2.5 font-mono text-[0.72rem] text-red-300/80 resize-none outline-none leading-relaxed"
           />
