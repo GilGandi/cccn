@@ -1,4 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIP } from '@/lib/apiAuth'
 
 // Cache de 1 hora no CDN
 export const revalidate = 3600
@@ -16,7 +18,12 @@ const versiculos = [
   { texto: 'Busquem primeiro o reino de Deus e a sua justiça, e todas essas coisas serão acrescentadas a vocês.', referencia: 'Mateus 6:33' },
 ]
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const ip = getClientIP(req)
+  if (!rateLimit(`versiculo:${ip}`, 60, 60 * 1000)) {
+    return NextResponse.json({ error: 'Muitas requisições.' }, { status: 429 })
+  }
+
   const idx = Math.floor(Math.random() * versiculos.length)
   return NextResponse.json(versiculos[idx], {
     headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=3600' },

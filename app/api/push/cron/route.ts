@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIP } from '@/lib/apiAuth'
 import { prisma } from '@/lib/prisma'
 // @ts-ignore
 import webpush from 'web-push'
@@ -23,6 +25,11 @@ function calcularHoraEnvio(dataEvento: Date, horario: string): Date {
 }
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIP(req)
+  if (!rateLimit(`push-cron:${ip}`, 10, 60 * 1000)) {
+    return NextResponse.json({ error: 'Muitas requisições.' }, { status: 429 })
+  }
+
   if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }

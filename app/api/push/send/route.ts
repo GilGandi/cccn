@@ -17,9 +17,15 @@ export async function POST(req: NextRequest) {
   }
   const { titulo, corpo, url } = body
   if (!titulo || !corpo) return NextResponse.json({ error: 'Título e corpo são obrigatórios.' }, { status: 400 })
+  if (typeof titulo !== 'string' || typeof corpo !== 'string')
+    return NextResponse.json({ error: 'Tipos inválidos.' }, { status: 400 })
+  if (titulo.length > 100 || corpo.length > 500)
+    return NextResponse.json({ error: 'Título ou corpo muito longo.' }, { status: 400 })
+  if (url && (typeof url !== 'string' || !url.startsWith('/')))
+    return NextResponse.json({ error: 'URL deve ser caminho relativo.' }, { status: 400 })
 
   const subscriptions = await prisma.pushSubscription.findMany()
-  const payload = JSON.stringify({ titulo, corpo, url: url || '/agenda' })
+  const payload = JSON.stringify({ titulo: titulo.slice(0, 100), corpo: corpo.slice(0, 500), url: url || '/agenda' })
 
   const resultados = await Promise.allSettled(
     subscriptions.map(sub =>

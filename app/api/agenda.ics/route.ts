@@ -1,4 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIP } from '@/lib/apiAuth'
 import { prisma } from '@/lib/prisma'
 
 function toIcal(date: Date, horario: string): string {
@@ -12,7 +14,13 @@ function escapeIcal(str: string): string {
   return str.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // Rate limit: 30 requisições por IP a cada 5 minutos
+  const ip = getClientIP(req)
+  if (!rateLimit(`agenda-ics:${ip}`, 30, 5 * 60 * 1000)) {
+    return NextResponse.json({ error: 'Muitas requisições.' }, { status: 429 })
+  }
+
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
   const seisM = new Date(); seisM.setMonth(seisM.getMonth() + 6)
 

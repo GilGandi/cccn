@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import WoodCross from '@/components/WoodCross'
 import AgendaFiltro from '@/components/AgendaFiltro'
+import BotaoNotificacao from '@/components/BotaoNotificacao'
 import { prisma } from '@/lib/prisma'
 
 export default async function Agenda() {

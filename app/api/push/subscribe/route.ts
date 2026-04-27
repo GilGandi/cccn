@@ -16,10 +16,14 @@ export async function POST(req: NextRequest) {
   if (!endpoint?.startsWith('https://') || !keys?.p256dh || !keys?.auth) {
     return NextResponse.json({ error: 'Subscription inválida.' }, { status: 400 })
   }
+  // Limitar tamanho dos campos
+  if (endpoint.length > 500 || keys.p256dh.length > 200 || keys.auth.length > 100) {
+    return NextResponse.json({ error: 'Subscription com campos muito grandes.' }, { status: 400 })
+  }
   await prisma.pushSubscription.upsert({
     where: { endpoint },
-    update: { p256dh: keys.p256dh, auth: keys.auth },
-    create: { endpoint, p256dh: keys.p256dh, auth: keys.auth },
+    update: { p256dh: keys.p256dh.slice(0, 200), auth: keys.auth.slice(0, 100) },
+    create: { endpoint: endpoint.slice(0, 500), p256dh: keys.p256dh.slice(0, 200), auth: keys.auth.slice(0, 100) },
   })
   return NextResponse.json({ ok: true })
 }

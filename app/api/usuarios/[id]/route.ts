@@ -14,7 +14,7 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   const { id } = await params
   if (!isValidCuid(id)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
 
-  const target = await prisma.user.findUnique({ where: { id } })
+  const target = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true, username: true } })
   if (!target) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 })
 
   // EDITOR só pode editar a si próprio
@@ -64,7 +64,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Params }) {
   if (id === auth.userId)
     return NextResponse.json({ error: 'Você não pode deletar sua própria conta.' }, { status: 403 })
 
-  const target = await prisma.user.findUnique({ where: { id } })
+  const target = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true, username: true } })
   if (!target) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 })
 
   // SUPERADMIN nunca pode ser excluído
