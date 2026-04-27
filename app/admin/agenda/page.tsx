@@ -214,7 +214,7 @@ export default function AdminAgenda() {
               <input className={inp} placeholder="Ex: Culto de Domingo" value={form.titulo} autoFocus
                 onChange={e => setForm({ ...form, titulo: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Data *</label>
                 <input type="date" className={inp} value={form.data}

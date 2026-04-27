@@ -192,7 +192,7 @@ export default function AdminEventosInscricao() {
               <textarea className={inp + ' resize-none'} rows={3} value={form.descricao}
                 onChange={e => setForm({ ...form, descricao: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Data de encerramento das inscrições *</label>
                 <input type="date" className={inp} value={form.dataEncerramento}

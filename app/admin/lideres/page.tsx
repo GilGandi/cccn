@@ -117,7 +117,7 @@ export default function AdminLideres() {
         <Modal title={modal === 'novo' ? 'Novo líder' : 'Editar líder'} onClose={() => setModal(null)}>
           <div className="flex flex-col gap-4">
             <ImageUpload value={form.fotoUrl} onChange={v => setForm({ ...form, fotoUrl: v })} label="Foto" />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Nome *</label>
                 <input className={inp} placeholder="Nome completo" value={form.nome} autoFocus

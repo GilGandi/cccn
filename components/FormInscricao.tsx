@@ -183,7 +183,7 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
           {enderecoObrig && (
             <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] flex flex-col gap-3">
               <p className="font-body text-[0.62rem] tracking-widest uppercase text-[#888480]">Endereço {enderecoObrig ? '*' : '(opcional)'}</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="col-span-2">
                   <label className={lbl}>Logradouro</label>
                   <input className={inp} placeholder="Rua, Av..." value={logradouro} onChange={e => setLogradouro(e.target.value)} />

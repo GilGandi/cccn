@@ -143,7 +143,7 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
       {modal && (
         <Modal title={modal==='novo'?'Novo usuário':'Editar usuário'} onClose={() => setModal(null)}>
           <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Nome *</label>
                 <input className={inp} placeholder="Nome completo" value={form.name} autoFocus onChange={e => setForm({...form,name:e.target.value})} />
@@ -309,7 +309,7 @@ function AbaPerfis({ perfis, load, isSuperAdmin }: { perfis: Perfil[]; load: () 
       {modal && (
         <Modal title={modal==='novo'?'Novo perfil':'Editar perfil'} onClose={() => setModal(null)} size="lg">
           <div className="flex flex-col gap-5">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Nome *</label>
                 <input className={inp} placeholder="Ex: Secretaria, Comunicação..." value={nome} autoFocus onChange={e => setNome(e.target.value)} />

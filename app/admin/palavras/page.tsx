@@ -107,7 +107,7 @@ export default function AdminPalavras() {
               <input className={inp} placeholder="Título da mensagem" value={form.titulo}
                 onChange={e => setForm({ ...form, titulo: e.target.value })} autoFocus />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Pregador</label>
                 <input className={inp} placeholder="Nome do pregador" value={form.pregador}

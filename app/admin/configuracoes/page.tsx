@@ -156,7 +156,7 @@ export default function AdminConfiguracoes() {
           <Campo id="nome_igreja" label="Nome completo"
             placeholder="Comunidade Cristã de Campos Novos"
             value={get('nome_igreja')} onChange={v => set('nome_igreja', v)} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Campo id="nome_curto" label="Sigla" placeholder="C.C.C.N"
               value={get('nome_curto')} onChange={v => set('nome_curto', v)} />
             <Campo id="ano_fundacao" label="Ano de fundação" placeholder="2013"
@@ -175,7 +175,7 @@ export default function AdminConfiguracoes() {
           <Campo id="endereco" label="Endereço"
             placeholder="Rua João Gonçalves de Araújo, 829"
             value={get('endereco')} onChange={v => set('endereco', v)} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Campo id="bairro" label="Bairro" placeholder="Bairro Aparecida"
               value={get('bairro')} onChange={v => set('bairro', v)} />
             <Campo id="cep" label="CEP" placeholder="89620-000"
@@ -208,7 +208,7 @@ export default function AdminConfiguracoes() {
               {get('whatsapp') && <span className="ml-1 text-[#888]">WhatsApp: {get('whatsapp')}</span>}
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={lbl}>Instagram</label>
               <div className="flex">
@@ -277,7 +277,7 @@ export default function AdminConfiguracoes() {
 
         {/* Doações */}
         <Secao titulo="Doações / Pix" icon="💰">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Campo id="pix_tipo" label="Tipo da chave Pix"
               placeholder="CNPJ, CPF, e-mail, telefone..."
               value={get('pix_tipo')} onChange={v => set('pix_tipo', v)} />
@@ -328,7 +328,7 @@ export default function AdminConfiguracoes() {
             <p className={lbl + ' mb-3'}>3 pilares (cards da seção Nossa História)</p>
             <div className="flex flex-col gap-3">
               {[1,2,3].map(n => (
-                <div key={n} className="grid grid-cols-3 gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                <div key={n} className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
                   <div>
                     <label className={lbl}>Título {n}</label>
                     <input className={inp} placeholder={['Fé','Família','Missão'][n-1]}

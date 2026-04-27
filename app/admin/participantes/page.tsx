@@ -130,7 +130,7 @@ export default function AdminParticipantes() {
               <label className={lbl}>Nome completo *</label>
               <input className={inp} value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} autoFocus />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Telefone</label>
                 <input className={inp} value={form.telefone} maxLength={15} onChange={e => setForm({ ...form, telefone: mascaraTelefone(e.target.value) })} />
