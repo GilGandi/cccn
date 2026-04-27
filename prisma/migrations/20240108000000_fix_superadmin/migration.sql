@@ -16,3 +16,8 @@ EXCEPTION WHEN others THEN null; END $$;
 -- Atualizar perfilId para quem mudou para SUPERADMIN
 UPDATE "User" SET "perfilId" = 'perfil_superadmin'
 WHERE "role"::text = 'SUPERADMIN' AND ("perfilId" IS NULL OR "perfilId" = 'perfil_admin');
+
+-- Converter COLABORADOR para EDITOR se ainda existir
+DO $$ BEGIN
+  EXECUTE 'UPDATE "User" SET "role" = ''EDITOR''::text::"Role" WHERE "role"::text = ''COLABORADOR''';
+EXCEPTION WHEN others THEN null; END $$;

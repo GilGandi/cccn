@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Modal from '@/components/admin/Modal'
+import ErrorBox from '@/components/admin/ErrorBox'
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 type User   = { id: string; name: string; username: string; role: string; perfilId: string | null; perfil?: { nome: string } | null }
@@ -103,7 +104,7 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
         </button>
       </div>
 
-      {msg && !modal && <p className="mb-4 font-body text-[0.8rem] text-red-400 bg-red-500/[0.08] px-4 py-2.5 rounded-lg">{msg}</p>}
+      {!modal && <ErrorBox error={msg} />}
 
       {loading ? (
         <div className="flex justify-center py-16"><div className="w-6 h-6 border-2 border-[#c8b99a]/30 border-t-[#c8b99a] rounded-full animate-spin" /></div>
@@ -189,7 +190,7 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
               </>
             )}
 
-            {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
+            <ErrorBox error={msg} />
             <div className="flex gap-2 pt-1">
               <button onClick={save} disabled={saving}
                 className="flex-1 py-2.5 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all disabled:opacity-50">
@@ -342,7 +343,7 @@ function AbaPerfis({ perfis, load, isSuperAdmin }: { perfis: Perfil[]; load: () 
                 })}
               </div>
             </div>
-            {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
+            <ErrorBox error={msg} />
             <div className="flex gap-2">
               <button onClick={save} disabled={saving}
                 className="flex-1 py-2.5 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all disabled:opacity-50">

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Modal from '@/components/admin/Modal'
+import ErrorBox from '@/components/admin/ErrorBox'
 import ImageUpload from '@/components/admin/ImageUpload'
 import { safeImageSrc } from '@/lib/safeUrl'
 
@@ -241,7 +242,7 @@ export default function AdminEventosInscricao() {
               </div>
               <span className="font-body text-[0.78rem] text-[#888]">Evento ativo (aceita inscrições)</span>
             </label>
-            {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
+            <ErrorBox error={msg} />
             <div className="flex gap-2 pt-1">
               <button onClick={save} disabled={saving}
                 className="flex-1 py-2.5 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all disabled:opacity-50">

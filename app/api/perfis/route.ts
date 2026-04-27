@@ -6,8 +6,13 @@ import { prisma } from '@/lib/prisma'
 export async function GET(req: NextRequest) {
   const auth = await requireSuperAdmin(req)
   if (!auth.ok) return auth.response
-  const perfis = await prisma.perfil.findMany({ orderBy: { nome: 'asc' }, include: { _count: { select: { users: true } } } })
-  return NextResponse.json(perfis)
+  try {
+    const perfis = await prisma.perfil.findMany({ orderBy: { nome: 'asc' }, include: { _count: { select: { users: true } } } })
+    return NextResponse.json(perfis)
+  } catch (e: any) {
+    console.error('[GET /api/perfis]', e?.message)
+    return NextResponse.json([], { status: 200 }) // retorna vazio em vez de 500
+  }
 }
 
 export async function POST(req: NextRequest) {

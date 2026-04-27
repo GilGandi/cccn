@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Modal from '@/components/admin/Modal'
+import ErrorBox from '@/components/admin/ErrorBox'
 
 type Playlist = { id: string; titulo: string; url: string; tipo: string; ativo: boolean }
 
@@ -124,7 +125,7 @@ export default function AdminLouvor() {
                 onChange={e => setForm({ ...form, url: e.target.value })} />
               <p className="font-body text-[0.6rem] text-[#555] mt-1">Cole o link da playlist — o tipo é detectado automaticamente.</p>
             </div>
-            {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
+            <ErrorBox error={msg} />
             <div className="flex gap-2 pt-1">
               <button onClick={save} disabled={saving}
                 className="flex-1 py-2.5 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all disabled:opacity-50">

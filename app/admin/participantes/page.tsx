@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import Modal from '@/components/admin/Modal'
+import ErrorBox from '@/components/admin/ErrorBox'
 
 type Participante = { id: string; nome: string; telefone: string | null; sexo: string | null; idade: number | null; _count: { inscricoes: number } }
 
@@ -150,7 +151,7 @@ export default function AdminParticipantes() {
                 ))}
               </div>
             </div>
-            {msg && <p className="font-body text-[0.78rem] text-red-400">{msg}</p>}
+            <ErrorBox error={msg} />
             <div className="flex gap-2 pt-1">
               <button onClick={save} disabled={saving}
                 className="flex-1 py-2.5 bg-[#c8b99a] text-[#0a0a0a] font-body font-semibold text-[0.72rem] tracking-widest uppercase rounded-md hover:bg-[#d4c8b0] transition-all disabled:opacity-50">
