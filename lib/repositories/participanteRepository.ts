@@ -1,6 +1,30 @@
 import { prisma } from '@/lib/prisma'
 import { normalizarNome } from '@/lib/domain/rules'
 
+interface CreateData {
+  nome: string
+  telefone: string  // obrigatório
+  sexo?: string | null
+  idade?: number | null
+  logradouro?: string | null
+  numero?: string | null
+  bairro?: string | null
+  cidade?: string | null
+  estado?: string | null
+}
+
+interface UpdateData {
+  nome?: string
+  telefone?: string
+  sexo?: string | null
+  idade?: number | null
+  logradouro?: string | null
+  numero?: string | null
+  bairro?: string | null
+  cidade?: string | null
+  estado?: string | null
+}
+
 export const participanteRepository = {
   async search(q: string, take = 50) {
     return prisma.participante.findMany({
@@ -12,7 +36,6 @@ export const participanteRepository = {
   },
 
   async searchPublic(q: string) {
-    // Apenas id e nome — sem dados pessoais
     return prisma.participante.findMany({
       where: { nome: { contains: q, mode: 'insensitive' } },
       select: { id: true, nome: true },
@@ -29,34 +52,34 @@ export const participanteRepository = {
   },
 
   async findByNomeETelefone(nomeNorm: string, telefoneNorm: string) {
-    // Busca participante existente por telefone (normalizado) + nome normalizado
-    // Telefone é o identificador mais forte; nome confirma a identidade
     if (!telefoneNorm) return null
     const candidatos = await prisma.participante.findMany({
       where: { telefone: telefoneNorm },
       take: 10,
     })
-    // Comparar nome normalizado
     return candidatos.find(p => normalizarNome(p.nome) === nomeNorm) ?? null
   },
 
   async findByNomeApenas(nomeNorm: string) {
-    // Sem telefone: busca só por nome normalizado (menos confiável)
     const todos = await prisma.participante.findMany({ take: 500 })
     return todos.find(p => normalizarNome(p.nome) === nomeNorm) ?? null
   },
 
-  async create(data: { nome: string; telefone?: string | null; sexo?: string | null; idade?: number | null }) {
-    // Normalizar telefone antes de salvar
-    const normalized = {
-      ...data,
-      telefone: data.telefone ? data.telefone.replace(/\D/g, '') : null,
-    }
-    return prisma.participante.create({ data: normalized })
+  async create(data: CreateData) {
+    return prisma.participante.create({
+      data: {
+        ...data,
+        telefone: data.telefone.replace(/\D/g, ''),
+      },
+    })
   },
 
-  async update(id: string, data: { nome?: string; telefone?: string | null; sexo?: string | null; idade?: number | null }) {
-    return prisma.participante.update({ where: { id }, data })
+  async update(id: string, data: UpdateData) {
+    const update: any = { ...data }
+    if (typeof update.telefone === 'string') {
+      update.telefone = update.telefone.replace(/\D/g, '')
+    }
+    return prisma.participante.update({ where: { id }, data: update })
   },
 
   async delete(id: string) {

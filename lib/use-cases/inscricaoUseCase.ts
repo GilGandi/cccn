@@ -106,7 +106,7 @@ export async function executarInscricao(eventoId: string, input: InscricaoInput)
       // Criar novo participante
       const novo = await participanteRepository.create({
         nome: input.nome!.trim().slice(0, 200),
-        telefone: telNorm || null,
+        telefone: telNorm,
         sexo: input.sexo || null,
         idade: input.idade !== undefined && input.idade !== null ? Number(input.idade) : null,
       })
