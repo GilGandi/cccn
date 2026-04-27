@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       url: url.slice(0, 500),
       legenda: legenda?.trim().slice(0, 200) || null,
       galeria: galeriaValida,
+      categoriaId: categoriaId || null,
     }
   })
   return NextResponse.json(foto)

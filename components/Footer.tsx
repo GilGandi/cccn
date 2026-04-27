@@ -8,6 +8,7 @@ const navLinks = [
   { href: '/',         label: 'Início' },
   { href: '/historia',   label: 'Nossa História' },
   { href: '/lideranca', label: 'Liderança' },
+  { href: '/galeria',  label: 'Galeria' },
   { href: '/agenda',   label: 'Agenda' },
   { href: '/palavras', label: 'Palavras' },
   { href: '/louvor',   label: 'Louvor' },

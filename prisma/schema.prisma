@@ -69,10 +69,12 @@ model Palavra {
 }
 
 model Foto {
-  id        String   @id @default(cuid())
-  url       String
-  legenda   String?
-  galeria   String   @default("geral")
+  id          String           @id @default(cuid())
+  url         String
+  legenda     String?
+  galeria     String           @default("geral")
+  categoriaId String?
+  categoria   GaleriaCategoria? @relation(fields: [categoriaId], references: [id])
   ordem     Int      @default(0)
   createdAt DateTime @default(now())
 }
@@ -93,6 +95,15 @@ model Playlist {
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model GaleriaCategoria {
+  id        String   @id @default(cuid())
+  nome      String
+  descricao String?
+  ordem     Int      @default(0)
+  createdAt DateTime @default(now())
+  fotos     Foto[]
 }
 
 model Config {

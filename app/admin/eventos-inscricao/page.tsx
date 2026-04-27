@@ -74,6 +74,22 @@ export default function AdminEventosInscricao() {
     load()
   }
 
+  const duplicar = async (ev: Evento) => {
+    const novoTitulo = `${ev.titulo} (cópia)`
+    const r = await fetch('/api/eventos-inscricao', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        titulo: novoTitulo,
+        fotoUrl: ev.fotoUrl,
+        dataEncerramento: ev.dataEncerramento,
+        ativo: false, // começa inativo para editar antes de publicar
+      }),
+    })
+    if (r.ok) load()
+    else { const d = await r.json(); setMsg(d.error || 'Erro ao duplicar.') }
+  }
+
   const addData = () => {
     if (!form.novaData) return
     if (form.datas.includes(form.novaData)) return
@@ -140,6 +156,10 @@ export default function AdminEventosInscricao() {
                     <button onClick={() => openInscritos(ev)}
                       className="flex-1 py-1.5 border border-white/[0.08] text-[#888] font-body text-[0.6rem] tracking-widest uppercase rounded hover:text-[#f0ede8] transition-all">
                       Ver inscritos
+                    </button>
+                    <button onClick={() => duplicar(ev)} title="Duplicar"
+                      className="p-2 rounded border border-white/[0.08] text-[#555] hover:text-[#c8b99a] hover:border-[#c8b99a]/30 transition-all">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     </button>
                     <button onClick={() => openEditar(ev)}
                       className="p-2 rounded border border-white/[0.08] text-[#555] hover:text-[#f0ede8] hover:border-white/20 transition-all">
