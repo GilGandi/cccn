@@ -13,11 +13,15 @@ export const authOptions: NextAuthOptions = {
   useSecureCookies: process.env.NODE_ENV === 'production',
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
       options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
     },
     csrfToken: {
-      name: process.env.NODE_ENV === 'production' ? '__Host-next-auth.csrf-token' : 'next-auth.csrf-token',
+      name: process.env.NODE_ENV === 'production'
+        ? '__Host-next-auth.csrf-token'
+        : 'next-auth.csrf-token',
       options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
     },
   },
@@ -34,27 +38,29 @@ export const authOptions: NextAuthOptions = {
         if (credentials.username.length > 100 || credentials.password.length > 200) return null
 
         const xff = (req as any)?.headers?.['x-forwarded-for']
-        const ip = Array.isArray(xff) ? xff[0] : typeof xff === 'string' ? xff.split(',')[0].trim() : 'unknown'
+        const ip  = Array.isArray(xff) ? xff[0] : typeof xff === 'string' ? xff.split(',')[0].trim() : 'unknown'
         const usernameLower = credentials.username.toLowerCase().trim()
 
-        if (!rateLimit(`login:ip:${ip}`, 10, 15 * 60 * 1000)) throw new Error('Muitas tentativas. Tente novamente em 15 minutos.')
-        if (!rateLimit(`login:user:${usernameLower}`, 5, 15 * 60 * 1000)) throw new Error('Conta temporariamente bloqueada.')
+        if (!rateLimit(`login:ip:${ip}`, 10, 15 * 60 * 1000))
+          throw new Error('Muitas tentativas. Tente novamente em 15 minutos.')
+        if (!rateLimit(`login:user:${usernameLower}`, 5, 15 * 60 * 1000))
+          throw new Error('Conta temporariamente bloqueada.')
 
         const user = await prisma.user.findUnique({
           where: { username: usernameLower },
           include: { perfil: { select: { id: true, nome: true, permissoes: true } } },
         })
 
-        const hash = user?.password ?? DUMMY_HASH
+        const hash  = user?.password ?? DUMMY_HASH
         const valid = await bcrypt.compare(credentials.password, hash)
         if (!user || !valid) return null
 
         return {
-          id: user.id,
-          name: user.name,
-          username: user.username,
-          role: user.role,
-          perfilId: user.perfilId,
+          id:         user.id,
+          name:       user.name,
+          username:   user.username,
+          role:       user.role,
+          perfilId:   user.perfilId,
           perfilNome: user.perfil?.nome,
           permissoes: user.perfil?.permissoes ? JSON.parse(user.perfil.permissoes) : {},
         }
@@ -62,8 +68,9 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger }) {
-      // No login inicial — preenche com dados do authorize
+    async jwt({ token, user }) {
+      // Só atualiza no login — não faz query no banco a cada refresh
+      // Evita falhas silenciosas que zeravam o role
       if (user) {
         token.id         = (user as any).id
         token.username   = (user as any).username
@@ -72,26 +79,6 @@ export const authOptions: NextAuthOptions = {
         token.perfilNome = (user as any).perfilNome
         token.permissoes = (user as any).permissoes
       }
-
-      // A cada refresh do token — busca role atualizado do banco
-      // Isso garante que mudanças de role refletem sem precisar fazer novo login
-      if (!user && token.id) {
-        try {
-          const fresh = await prisma.user.findUnique({
-            where: { id: token.id as string },
-            select: { role: true, perfilId: true, perfil: { select: { nome: true, permissoes: true } } },
-          })
-          if (fresh) {
-            token.role       = fresh.role
-            token.perfilId   = fresh.perfilId
-            token.perfilNome = fresh.perfil?.nome
-            token.permissoes = fresh.perfil?.permissoes ? JSON.parse(fresh.perfil.permissoes) : {}
-          }
-        } catch {
-          // Se o banco não estiver disponível, mantém o token existente
-        }
-      }
-
       return token
     },
     async session({ session, token }) {
