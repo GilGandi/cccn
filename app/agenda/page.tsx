@@ -1,4 +1,4 @@
-export const revalidate = 600
+export const revalidate = 0
 
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -28,6 +28,9 @@ export default async function Agenda() {
         <WoodCross opacity={0.03} />
         <div className="relative z-10">
           <span className="font-body text-[0.62rem] tracking-[0.3em] uppercase text-[#c8b99a] mb-4 block">Calendário</span>
+          <div className="flex items-center mb-4">
+            <BotaoNotificacao />
+          </div>
           <h1 className="font-display font-normal leading-[1.1] text-[#f0ede8]" style={{ fontSize: 'clamp(2.5rem,5vw,4rem)' }}>
             Agenda de <em style={{ color: '#c8b99a' }}>cultos e eventos</em>
           </h1>

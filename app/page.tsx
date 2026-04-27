@@ -10,7 +10,7 @@ import VersiculoAleatorio from '@/components/VersiculoAleatorio'
 import { getConfigs } from '@/lib/config'
 import { safeExternalHref } from '@/lib/safeUrl'
 
-export const revalidate = 600
+export const revalidate = 0
 
 export default async function Home() {
   const hoje = new Date()

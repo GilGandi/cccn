@@ -18,6 +18,11 @@ interface InscricaoInput {
   telefone?: string
   sexo?: string
   idade?: number | null
+  logradouro?: string
+  numero?: string
+  bairro?: string
+  cidade?: string
+  estado?: string
   anexoUrl?: string | null
 }
 
@@ -57,12 +62,15 @@ export async function executarInscricao(eventoId: string, input: InscricaoInput)
     const nomeError = validateParticipanteNome(input.nome ?? '')
     if (nomeError) return { ok: false, error: nomeError, status: 400 }
 
-    if (evento.telefoneObrig && !input.telefone?.trim())
-      return { ok: false, error: 'Telefone é obrigatório para este evento.', status: 400 }
+    // Telefone sempre obrigatório
+    if (!input.telefone?.trim())
+      return { ok: false, error: 'Telefone é obrigatório.', status: 400 }
     if (evento.sexoObrig && !input.sexo)
       return { ok: false, error: 'Sexo é obrigatório para este evento.', status: 400 }
     if (evento.idadeObrig && (input.idade === undefined || input.idade === null))
       return { ok: false, error: 'Idade é obrigatória para este evento.', status: 400 }
+    if (evento.enderecoObrig && (!input.logradouro?.trim() || !input.bairro?.trim() || !input.cidade?.trim()))
+      return { ok: false, error: 'Endereço é obrigatório para este evento.', status: 400 }
     if (input.sexo) {
       const sexoError = validateSexo(input.sexo)
       if (sexoError) return { ok: false, error: sexoError, status: 400 }

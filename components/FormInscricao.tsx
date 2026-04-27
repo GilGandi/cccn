@@ -9,6 +9,7 @@ interface Props {
   sexoObrig: boolean
   idadeObrig: boolean
   campoAnexoLabel: string | null
+  enderecoObrig: boolean
   vagasRestantes: number | null
 }
 
@@ -35,11 +36,16 @@ function mascaraTelefone(v: string): string {
 const inp = "w-full bg-[#111] border border-white/[0.08] text-[#f0ede8] font-body text-[0.9rem] px-4 py-3 rounded-md outline-none focus:border-[#c8b99a]/60 transition-colors placeholder:text-[#444]"
 const lbl = "block font-body text-[0.65rem] tracking-[0.18em] uppercase text-[#888480] mb-2"
 
-export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sexoObrig, idadeObrig, campoAnexoLabel, vagasRestantes }: Props) {
+export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sexoObrig, idadeObrig, campoAnexoLabel, enderecoObrig, vagasRestantes }: Props) {
   const [nome, setNome]         = useState('')
   const [telefone, setTelefone] = useState('')
   const [sexo, setSexo]         = useState('')
   const [idade, setIdade]       = useState('')
+  const [logradouro, setLogradouro] = useState('')
+  const [numero, setNumero]         = useState('')
+  const [bairro, setBairro]         = useState('')
+  const [cidade, setCidade]         = useState('')
+  const [estado, setEstado]         = useState('')
   const [lgpdOk, setLgpdOk]     = useState(false)
   const [showLgpd, setShowLgpd] = useState(false)
   const [saving, setSaving]     = useState(false)
@@ -70,7 +76,7 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
     const r = await fetch(`/api/eventos-inscricao/${eventoId}/inscricoes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, telefone, sexo, idade: idade ? Number(idade) : null, anexoUrl: anexoUrlFinal }),
+      body: JSON.stringify({ nome, telefone, sexo, idade: idade ? Number(idade) : null, logradouro, numero, bairro, cidade, estado, anexoUrl: anexoUrlFinal }),
     })
     const d = await r.json()
 
@@ -114,12 +120,6 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
           <input className={inp} placeholder="Nome e sobrenome" value={nome}
             onChange={e => setNome(e.target.value)} required />
           <p className="font-body text-[0.6rem] text-[#555] mt-1">Informe nome e sobrenome.</p>
-        </div>
-
-        <div>
-          <label className={lbl}>Telefone celular {telefoneObrig ? '*' : '(opcional)'}</label>
-          <input className={inp} placeholder="(49) 99999-9999" maxLength={15} value={telefone}
-            onChange={e => setTelefone(mascaraTelefone(e.target.value))} />
         </div>
 
         <div>
@@ -172,6 +172,44 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
             )}
           </div>
         )}
+
+        {/* Endereço */}
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className={lbl}>Telefone *</label>
+            <input className={inp} placeholder="(49) 99999-9999" maxLength={15} value={telefone}
+              onChange={e => setTelefone(mascaraTelefone(e.target.value))} />
+          </div>
+          {enderecoObrig && (
+            <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] flex flex-col gap-3">
+              <p className="font-body text-[0.62rem] tracking-widest uppercase text-[#888480]">Endereço {enderecoObrig ? '*' : '(opcional)'}</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <label className={lbl}>Logradouro</label>
+                  <input className={inp} placeholder="Rua, Av..." value={logradouro} onChange={e => setLogradouro(e.target.value)} />
+                </div>
+                <div>
+                  <label className={lbl}>Número</label>
+                  <input className={inp} placeholder="123" value={numero} onChange={e => setNumero(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className={lbl}>Bairro</label>
+                <input className={inp} placeholder="Bairro" value={bairro} onChange={e => setBairro(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={lbl}>Cidade</label>
+                  <input className={inp} placeholder="Campos Novos" value={cidade} onChange={e => setCidade(e.target.value)} />
+                </div>
+                <div>
+                  <label className={lbl}>Estado</label>
+                  <input className={inp} placeholder="SC" maxLength={2} value={estado} onChange={e => setEstado(e.target.value.toUpperCase())} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Checkbox LGPD */}
         <div className={`p-4 rounded-xl border transition-all ${lgpdOk ? 'border-[#c8b99a]/30 bg-[#c8b99a]/[0.04]' : 'border-white/[0.08] bg-white/[0.02]'}`}>

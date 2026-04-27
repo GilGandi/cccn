@@ -14,7 +14,7 @@ const lbl = "block font-body text-[0.6rem] tracking-[0.18em] uppercase text-[#66
 const emptyForm = {
   titulo: '', descricao: '', fotoUrl: '', dataEncerramento: '',
   datas: [] as string[], novaData: '',
-  telefoneObrig: false, sexoObrig: false, idadeObrig: false,
+  telefoneObrig: false, sexoObrig: false, idadeObrig: false, enderecoObrig: false,
   campoAnexoLabel: '', vagas: '', ativo: true,
 }
 
@@ -232,6 +232,7 @@ export default function AdminEventosInscricao() {
                   { key: 'telefoneObrig', label: 'Telefone' },
                   { key: 'sexoObrig',     label: 'Sexo' },
                   { key: 'idadeObrig',    label: 'Idade' },
+                  { key: 'enderecoObrig', label: 'Endereço' },
                 ].map(({ key, label }) => (
                   <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
                     <div className={`w-8 h-4 rounded-full transition-colors relative ${form[key] ? 'bg-[#c8b99a]' : 'bg-white/10'}`}

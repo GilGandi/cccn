@@ -140,14 +140,19 @@ model Perfil {
 // ─── Participantes globais (pessoas que se inscrevem em eventos) ──────────────
 
 model Participante {
-  id          String    @id @default(cuid())
-  nome        String
-  telefone    String?
-  sexo        String?   // M | F
-  idade       Int?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  inscricoes  Inscricao[]
+  id           String    @id @default(cuid())
+  nome         String
+  telefone     String    // obrigatório
+  sexo         String?   // M | F
+  idade        Int?
+  logradouro   String?
+  numero       String?
+  bairro       String?
+  cidade       String?
+  estado       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  inscricoes   Inscricao[]
 }
 
 // ─── Eventos de inscrição (diferente da agenda) ───────────────────────────────
@@ -162,6 +167,7 @@ model EventoInscricao {
   telefoneObrig    Boolean   @default(false)
   sexoObrig        Boolean   @default(false)
   idadeObrig       Boolean   @default(false)
+  enderecoObrig    Boolean   @default(false)
   // Datas (múltiplas, guardadas como JSON: ["2024-06-01", "2024-06-02"])
   datas            String    @default("[]")
   dataEncerramento DateTime
@@ -174,6 +180,14 @@ model EventoInscricao {
 }
 
 // ─── Inscrições (vínculo participante ↔ evento) ───────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
 
 model Inscricao {
   id               String          @id @default(cuid())
