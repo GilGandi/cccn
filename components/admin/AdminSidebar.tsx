@@ -59,7 +59,12 @@ function SidebarContent({ path, userName, userRole, perfilNome, onNav }: { path:
         }).map((l) => {
           const active = path === l.href || (l.href !== '/admin' && path.startsWith(l.href))
           return (
-            <Link key={l.href} href={l.href} onClick={onNav}
+            <Link key={l.href} href={l.href} //onClick={onNav}
+              onClick={(e) => {
+                console.log('CLICOU NO LINK', l.href);
+                // Se você estiver no mobile e quiser fechar o menu, pode chamar onNav aqui
+                // if (onNav) onNav();
+              }}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-[0.78rem] font-body transition-all duration-150
                 ${active
                   ? 'bg-[#c8b99a]/10 text-[#c8b99a] font-medium'
