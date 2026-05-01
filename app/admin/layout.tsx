@@ -1,14 +1,22 @@
-
 import type { Metadata } from 'next'
 import AdminProviders from './providers'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import WoodCross from '@/components/WoodCross'
+import { getServerSession } from 'next-auth' // Importe getServerSession
+import { authOptions } from '@/app/api/auth/[...nextauth]/route' // Importe suas authOptions
 
 export const metadata: Metadata = { title: 'Admin — CCCN' }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions) // Use suas authOptions aqui
+  
+  if (!session) {
+    redirect('/admin/login');
+  }
+
   return (
-    <AdminProviders>
+    // Passe a sessão para o AdminProviders
+    <AdminProviders session={session}>
       <div className="min-h-screen bg-[#0d0d0d] flex">
         <AdminSidebar />
         {/* pt-14 compensa a top bar fixa no mobile */}
