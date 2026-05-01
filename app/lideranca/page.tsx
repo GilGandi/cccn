@@ -12,7 +12,7 @@ export default async function Lideranca() {
   const lideres = await prisma.lider.findMany({
     where: { ativo: true },
     orderBy: { ordem: 'asc' },
-  })
+  }).catch(() => [])
 
   return (
     <main className="bg-[#0a0a0a] text-[#f0ede8]">

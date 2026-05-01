@@ -22,7 +22,7 @@ export default async function Louvor() {
   const playlists = await prisma.playlist.findMany({
     where: { ativo: true },
     orderBy: { createdAt: 'desc' },
-  })
+  }).catch(() => [])
 
   const youtube = playlists.filter(p => p.tipo === 'youtube')
   const spotify = playlists.filter(p => p.tipo === 'spotify')

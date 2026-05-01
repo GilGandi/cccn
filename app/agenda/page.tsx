@@ -18,8 +18,8 @@ export default async function Agenda() {
       where: { data: { gte: hoje, lte: seisM } },
       include: { categoria: { select: { id: true, nome: true, cor: true, fotoUrl: true } } },
       orderBy: { data: 'asc' },
-    }),
-    prisma.categoria.findMany({ orderBy: { nome: 'asc' } }),
+    }).catch(() => []),
+    prisma.categoria.findMany({ orderBy: { nome: 'asc' } }).catch(() => []),
   ])
 
   return (
