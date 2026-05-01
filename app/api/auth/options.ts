@@ -27,12 +27,12 @@ export const authOptions : NextAuthOptions = {
             username : credentials . username ,
           } ,
         } ) ;
-        if ( ! user || ! user . hashedPassword ) {
+        if ( ! user || ! user . password ) {
           return null ;
         }
         const isCorrectPassword = await bcrypt . compare (
           credentials . password ,
-          user . hashedPassword
+          user . password
         ) ;
         if ( ! isCorrectPassword ) {
           return null ;
