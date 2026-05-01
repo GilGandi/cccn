@@ -4,9 +4,13 @@ import CredentialsProvider from "next-auth/providers/credentials" ;
 import { PrismaAdapter } from "@auth/prisma-adapter" ;
 import { PrismaClient } from "@prisma/client" ;
 import bcrypt from "bcryptjs" ;
-import { NextAuthOptions } from "next-auth" ; // Este import está correto para o tipo
+import { NextAuthOptions } from "next-auth" ;
+import { PrismaPg } from "@prisma/adapter-pg" ; 
 
-const prisma = new PrismaClient ( ) ;
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+});
+const prisma = new PrismaClient({ adapter });
 
 // EXPORTE O OBJETO authOptions AQUI
 export const authOptions : NextAuthOptions = {
