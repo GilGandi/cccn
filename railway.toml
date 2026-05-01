@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install --legacy-peer-deps && ./node_modules/.bin/prisma generate && ./node_modules/.bin/next build 2>&1 | tee /tmp/build.log; exit ${PIPESTATUS[0]}"
+buildCommand = "npm install --legacy-peer-deps && ./node_modules/.bin/prisma generate && ./node_modules/.bin/next build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public"
 
 [build.nixpacksPlan.phases.setup]
 nixPkgs = ["nodejs_20"]
@@ -9,5 +9,5 @@ nixPkgs = ["nodejs_20"]
 NEXT_TELEMETRY_DISABLED = "1"
 
 [deploy]
-startCommand = "bash scripts/migrate-safe.sh && ./node_modules/.bin/next start -p $PORT"
+startCommand = "bash scripts/migrate-safe.sh && node .next/standalone/server.js"
 restartPolicyType = "on_failure"
