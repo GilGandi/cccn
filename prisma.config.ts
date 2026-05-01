@@ -5,7 +5,9 @@ export default defineConfig({
   migrations: {
     path: 'prisma/migrations',
   },
+  // DATABASE_URL só é necessário para migrate (startCommand)
+  // Durante o build (generate + next build) não precisa
   datasource: {
-    url: env('DATABASE_URL'),
+    url: process.env.DATABASE_URL ?? 'postgresql://placeholder:placeholder@localhost:5432/placeholder',
   },
 })
