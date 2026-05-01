@@ -2,6 +2,7 @@
 
 // Desabilita o cabeçalho X-Powered-By que revela que é Next.js
 const nextConfig = {
+  serverExternalPackages: ['@prisma/client', '.prisma/client'],
   output: 'standalone',
   compress: true,
   poweredByHeader: false,
