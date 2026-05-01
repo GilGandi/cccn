@@ -88,10 +88,12 @@ function SidebarContent({ path, userName, userRole, perfilNome, onNav }: { path:
         </div>
         <Link href="/" target="_blank" rel="noopener noreferrer" onClick={onNav}
           className="flex items-center gap-3 px-3 py-2 rounded-md text-[0.75rem] font-body text-[#555] hover:text-[#f0ede8] hover:bg-white/[0.04] transition-all mb-0.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           Ver site
         </Link>
         <button onClick={() => signOut({ callbackUrl: '/admin/login' })}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[0.75rem] font-body text-[#555] hover:text-red-400 hover:bg-red-500/[0.06] transition-all">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Sair
         </button>
       </div>
