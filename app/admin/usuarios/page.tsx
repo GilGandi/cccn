@@ -46,7 +46,7 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
   const [users, setUsers]     = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal]     = useState<'novo'|'editar'|null>(null)
-  const [form, setForm]       = useState<any>({ name:'', username:'', password:'', role:'EDITOR', perfilId:'' })
+  const [form, setForm]       = useState<any>({ name:'', username:'', password:'', perfilId:'perfil_editor' })
   const [editId, setEditId]   = useState<string|null>(null)
   const [saving, setSaving]   = useState(false)
   const [msg, setMsg]         = useState<any>('')
@@ -77,9 +77,13 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
     setSaving(true); setMsg('')
     const url = editId ? `/api/usuarios/${editId}` : '/api/usuarios'
     const method = editId ? 'PUT' : 'POST'
+    // Derivar role a partir do perfil selecionado
+    const perfilSel = perfis.find(p => p.id === form.perfilId)
+    const roleFromPerfil = form.perfilId === 'perfil_superadmin' ? 'SUPERADMIN'
+      : form.perfilId === 'perfil_admin' ? 'ADMIN' : 'EDITOR'
     const body = editId
       ? { name:form.name, username:form.username, ...(form.password?{password:form.password}:{}) }
-      : { name:form.name, username:form.username, password:form.password, role:form.role, perfilId:form.perfilId||null }
+      : { name:form.name, username:form.username, password:form.password, role:roleFromPerfil, perfilId:form.perfilId||null }
     const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
     if (r.ok) { setModal(null); setMsg(''); load() }
     else { try { setMsg(await r.json()) } catch { setMsg('Erro ao salvar.') } }
@@ -162,31 +166,26 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
             {modal==='novo' && (
               <>
                 <div>
-                  <label className={lbl}>Tipo de acesso</label>
+                  <label className={lbl}>Perfil de acesso</label>
                   <div className="flex flex-col gap-2">
-                    {roleOptions.map(r => (
-                      <label key={r.value} onClick={() => setForm({...form,role:r.value,perfilId:''})}
-                        className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${form.role===r.value?'border-[#c8b99a]/40 bg-[#c8b99a]/[0.04]':'border-white/[0.06] hover:border-white/[0.12]'}`}>
-                        <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${form.role===r.value?'border-[#c8b99a]':'border-white/20'}`}>
-                          {form.role===r.value && <div className="w-2 h-2 rounded-full bg-[#c8b99a]" />}
-                        </div>
-                        <div>
-                          <div className="font-body text-[0.82rem] text-[#f0ede8]">{r.label}</div>
-                          <div className="font-body text-[0.65rem] text-[#555] mt-0.5">{ROLE_DESCS[r.value]}</div>
-                        </div>
-                      </label>
-                    ))}
+                    {perfis
+                      .filter(p => isSuperAdmin ? true : p.id !== 'perfil_superadmin')
+                      .map(p => (
+                        <label key={p.id} onClick={() => setForm({...form, perfilId: p.id})}
+                          className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all
+                            ${form.perfilId===p.id ? 'border-[#c8b99a]/40 bg-[#c8b99a]/[0.04]' : 'border-white/[0.06] hover:border-white/[0.12]'}`}>
+                          <div className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0
+                            ${form.perfilId===p.id ? 'border-[#c8b99a]' : 'border-white/20'}`}>
+                            {form.perfilId===p.id && <div className="w-2 h-2 rounded-full bg-[#c8b99a]" />}
+                          </div>
+                          <div>
+                            <div className="font-body text-[0.82rem] text-[#f0ede8]">{p.nome}</div>
+                            <div className="font-body text-[0.65rem] text-[#555] mt-0.5">{p.descricao}</div>
+                          </div>
+                        </label>
+                      ))}
                   </div>
                 </div>
-                {perfisCusts.length > 0 && (
-                  <div>
-                    <label className={lbl}>Perfil customizado (opcional)</label>
-                    <select className={inp} value={form.perfilId} onChange={e => setForm({...form,perfilId:e.target.value})}>
-                      <option value="">Usar perfil padrão do tipo</option>
-                      {perfisCusts.map(p => <option key={p.id} value={p.id}>{p.nome}{p.descricao?` — ${p.descricao}`:''}</option>)}
-                    </select>
-                  </div>
-                )}
               </>
             )}
 
