@@ -2,9 +2,12 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const createPrismaClient = () => {
+  // Forçar sslmode=verify-full para suprimir warning do pg sobre SSL
+  const connString = (process.env.DATABASE_URL || '').replace(
+    /sslmode=require/g, 'sslmode=verify-full'
+  )
   const adapter = new PrismaPg({
-    connectionString: process.env.DATABASE_URL!,
-    // Timeout para alinhar com comportamento do Prisma 6
+    connectionString: connString || process.env.DATABASE_URL!,
     connectionTimeoutMillis: 5000,
     max: 10,
   })
