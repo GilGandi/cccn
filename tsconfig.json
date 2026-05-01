@@ -24,6 +24,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@/prisma/generated": [
+        "./prisma/generated"
+      ],
+      "@/prisma/generated/*": [
+        "./prisma/generated/*"
       ]
     },
     "target": "ES2017"
@@ -33,7 +39,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "lib/generated/**/*.ts"
+    "lib/generated/**/*.ts",
+    "prisma/generated/**/*.ts"
   ],
   "exclude": [
     "node_modules"
