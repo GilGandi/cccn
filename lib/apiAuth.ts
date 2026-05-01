@@ -16,7 +16,11 @@ export function canManageRole(managerRole: string, targetRole: string): boolean 
 }
 
 export async function requireAuth(req: NextRequest): Promise<AuthResult> {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+    cookieName: '__Secure-next-auth.session-token',
+  })
   if (!token) return { ok: false, response: NextResponse.json({ error: 'Não autorizado' }, { status: 401 }) }
 
   let permissoes: Record<string, boolean> = {}
