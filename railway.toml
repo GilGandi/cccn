@@ -1,14 +1,13 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install --legacy-peer-deps && npx prisma generate && npx next build"
+buildCommand = "npm install --legacy-peer-deps && ./node_modules/.bin/prisma generate && ./node_modules/.bin/next build"
 
 [build.nixpacksPlan.phases.setup]
 nixPkgs = ["nodejs_20"]
 
 [build.nixpacksPlan.variables]
 NEXT_TELEMETRY_DISABLED = "1"
-PRISMA_DISABLE_WARNINGS = "true"
 
 [deploy]
-startCommand = "bash scripts/migrate-safe.sh && npx next start -p $PORT"
+startCommand = "bash scripts/migrate-safe.sh && ./node_modules/.bin/next start -p $PORT"
 restartPolicyType = "on_failure"
