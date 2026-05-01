@@ -1,13 +1,14 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install --legacy-peer-deps && ./node_modules/.bin/prisma generate && ./node_modules/.bin/next build && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static"
+buildCommand = "npm install --legacy-peer-deps && ./node_modules/.bin/prisma generate && ./node_modules/.bin/next build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public"
 
 [build.nixpacksPlan.phases.setup]
 nixPkgs = ["nodejs_20"]
 
 [build.nixpacksPlan.variables]
 NEXT_TELEMETRY_DISABLED = "1"
+NODE_ENV = "production"
 
 [deploy]
-startCommand = "bash scripts/migrate-safe.sh && HOSTNAME=0.0.0.0 node .next/standalone/server.js"
+startCommand = "bash scripts/migrate-safe.sh && HOSTNAME=0.0.0.0 NODE_ENV=production node .next/standalone/server.js"
 restartPolicyType = "on_failure"
