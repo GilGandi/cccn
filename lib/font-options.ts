@@ -1,7 +1,6 @@
 export const FONT_OPTIONS = [
   { key: "default", label: "Fonte atual do site" },
   { key: "sfpro", label: "SF Pro" },
-  { key: "technovier", label: "Technovier" },
   { key: "helvetica", label: "Helvetica" },
   { key: "playfair", label: "Playfair Display" },
 ] as const;
