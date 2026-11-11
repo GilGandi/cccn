@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import FontSelector from './FontSelector'
 
 const inp  = "w-full bg-[#0f0f0f] border border-white/[0.08] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 rounded-md outline-none focus:border-[#c8b99a]/50 transition-colors placeholder:text-[#444]"
 const lbl  = "block font-body text-[0.6rem] tracking-[0.18em] uppercase text-[#666] mb-1.5"
@@ -348,6 +349,10 @@ export default function AdminConfiguracoes() {
         </Secao>
 
       </div>
+
+    <Secao titulo="Aparência" icon="🔤">
+      <FontSelector />
+    </Secao>
 
       {/* Salvar flutuante */}
       <div className="fixed bottom-6 right-6 z-30 flex items-center gap-3">
