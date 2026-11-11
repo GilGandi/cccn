@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
-import { technovier } from '@/lib/fonts'
 import { getFontKey } from '@/lib/site-settings'
 import './globals.css'
 
