@@ -5,15 +5,14 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isFontKey } from "@/lib/font-options";
 
-async function isAdmin() {
+async function isLogged() {
   const session = await getServerSession(authOptions);
-  const role = (session?.user as any)?.role;
-  return typeof role === "string" && role.toLowerCase() === "admin";
+  return !!session?.user;
 }
 
 export async function GET() {
-  if (!(await isAdmin())) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
+  if (!(await isLogged())) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
   const settings = await prisma.siteSettings.findUnique({
     where: { id: "singleton" },
@@ -23,8 +22,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  if (!(await isAdmin())) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
+  if (!(await isLogged())) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
   const body = await req.json().catch(() => null);
   if (!isFontKey(body?.fontKey)) {
