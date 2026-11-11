@@ -29,12 +29,6 @@ html[data-font="playfair"] {
   --font-display: var(--font-body);
 }
 
-/* Apague este bloco se você não tem o arquivo da Technovier */
-html[data-font="technovier"] {
-  --font-body: var(--font-technovier), system-ui, sans-serif;
-  --font-display: var(--font-body);
-}
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
