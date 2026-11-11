@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
+import { technovier } from '@/lib/fonts'
+import { getFontKey } from '@/lib/site-settings'
 import './globals.css'
 
 const playfair = Playfair_Display({
@@ -52,15 +54,21 @@ const jsonLd = {
   sameAs: ['https://instagram.com/cccnchurch'],
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const fontKey = await getFontKey()
+
   return (
-    <html lang="pt-BR" className={`${playfair.variable} ${dmSans.variable}`}>
+    <html
+      lang="pt-BR"
+      data-font={fontKey}
+      className={`${playfair.variable} ${dmSans.variable} ${technovier.variable}`}
+    >
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
-        }}
+            __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+          }}
         />
       </head>
       <body>{children}</body>
