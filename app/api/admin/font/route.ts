@@ -34,6 +34,6 @@ export async function POST(req: Request) {
     update: { fontKey: body.fontKey },
     create: { id: "singleton", fontKey: body.fontKey },
   });
-  revalidateTag("site-settings");
+  revalidateTag("site-settings", { expire: 0 });
   return NextResponse.json({ ok: true });
 }
