@@ -200,3 +200,9 @@ model Inscricao {
 
   @@unique([participanteId, eventoId]) // uma inscrição por pessoa por evento
 }
+
+model SiteSettings {
+  id        String   @id @default("singleton")
+  fontKey   String   @default("default")
+  updatedAt DateTime @updatedAt
+}
