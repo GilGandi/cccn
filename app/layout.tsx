@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
-import { Playfair_Display, DM_Sans } from 'next/font/google'
+import { Playfair_Display, DM_Sans, Inter, Arimo } from 'next/font/google'
 import { getFontKey } from '@/lib/site-settings'
 import './globals.css'
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+const arimo = Arimo({ subsets: ['latin'], variable: '--font-arimo', display: 'swap' })
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
