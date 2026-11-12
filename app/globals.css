@@ -15,12 +15,12 @@
 }
 
 html[data-font="sfpro"] {
-  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter), system-ui, sans-serif;
   --font-display: var(--font-body);
 }
 
 html[data-font="helvetica"] {
-  --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body: "Helvetica Neue", Helvetica, var(--font-arimo), Arial, sans-serif;
   --font-display: var(--font-body);
 }
 
