@@ -63,7 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="pt-BR"
       data-font={fontKey}
-      className={`${playfair.variable} ${dmSans.variable}`}
+      className={`${playfair.variable} ${dmSans.variable} ${inter.variable} ${arimo.variable}`}
     >
       <head>
         <script
