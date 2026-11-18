@@ -101,6 +101,7 @@ model GaleriaCategoria {
   id        String   @id @default(cuid())
   nome      String
   descricao String?
+  capaUrl   String?
   ordem     Int      @default(0)
   createdAt DateTime @default(now())
   fotos     Foto[]
