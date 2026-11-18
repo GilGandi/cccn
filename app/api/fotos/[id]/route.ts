@@ -12,9 +12,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Params }) {
   if (!isValidCuid(id)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
 
   try {
-    const foto = await prisma.foto.findUnique({ where: { id }, select: { url: true } })
-    if (!foto) return NextResponse.json({ error: 'Foto não encontrada.' }, { status: 404 })
-    await prisma.galeriaCategoria.updateMany({ where: { capaUrl: foto.url }, data: { capaUrl: null } })
     await prisma.foto.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch {
