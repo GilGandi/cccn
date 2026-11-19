@@ -16,8 +16,20 @@ export function isValidPlaylistUrl(url: string): boolean {
   } catch { return false }
 }
 
-export function isValidCloudinaryUrl(url: string): boolean {
-  try { const u = new URL(url); return u.protocol === 'https:' && u.hostname === 'res.cloudinary.com' } catch { return false }
+export function isValidMediaUrl(url: string): boolean {
+  try {
+    const candidate = new URL(url)
+    if (candidate.protocol !== 'https:') return false
+    // URLs antigas permanecem válidas para registros existentes no banco.
+    if (candidate.hostname === 'res.cloudinary.com') return true
+
+    const publicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+    if (!publicBase) return false
+    const base = new URL(publicBase)
+    if (base.protocol !== 'https:' || candidate.origin !== base.origin) return false
+    const prefix = base.pathname.replace(/\/+$/, '')
+    return !prefix || candidate.pathname === prefix || candidate.pathname.startsWith(`${prefix}/`)
+  } catch { return false }
 }
 
 export function isValidMapsUrl(url: string): boolean {

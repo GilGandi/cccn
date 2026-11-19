@@ -26,11 +26,24 @@ export function safeExternalHref(url: string | null | undefined): string | null 
   return null
 }
 
-/** Sanitiza URL de imagem — só permite Cloudinary ou relative path */
+/** Sanitiza URL de imagem — permite o domínio configurado do R2, URLs legadas e caminhos locais. */
 export function safeImageSrc(url: string | null | undefined): string | null {
   if (!url || typeof url !== 'string') return null
   const trimmed = url.trim()
-  if (trimmed.startsWith('https://res.cloudinary.com/')) return trimmed
   if (trimmed.startsWith('/')) return trimmed
-  return null
+
+  try {
+    const candidate = new URL(trimmed)
+    if (candidate.protocol !== 'https:') return null
+    if (candidate.hostname === 'res.cloudinary.com') return trimmed
+
+    const publicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+    if (!publicBase) return null
+    const base = new URL(publicBase)
+    if (base.protocol !== 'https:' || candidate.origin !== base.origin) return null
+    const prefix = base.pathname.replace(/\/+$/, '')
+    return !prefix || candidate.pathname === prefix || candidate.pathname.startsWith(`${prefix}/`) ? trimmed : null
+  } catch {
+    return null
+  }
 }

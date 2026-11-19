@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef } from 'react'
 import Image from 'next/image'
+import { safeImageSrc } from '@/lib/safeUrl'
 
 interface Props {
   value: string
@@ -53,8 +54,8 @@ export default function ImageUpload({ value, onChange, label = 'Foto de fundo' }
     }
   }
 
-  // Só exibe o preview se for URL do Cloudinary (confiável)
-  const safePreview = value && value.startsWith('https://res.cloudinary.com/') ? value : ''
+  // Exibe apenas URLs de mídia conhecidas ou caminhos locais seguros.
+  const safePreview = safeImageSrc(value) || ''
 
   return (
     <div className="flex flex-col gap-2">

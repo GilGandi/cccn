@@ -1,6 +1,31 @@
 /** @type {import('next').NextConfig} */
 
-// Desabilita o cabeçalho X-Powered-By que revela que é Next.js
+// O domínio público do R2 é definido antes do build para CSP e next/image.
+const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+let r2Origin = ''
+let r2Pattern = null
+try {
+  if (r2PublicUrl) {
+    const parsed = new URL(r2PublicUrl)
+    if (parsed.protocol === 'https:') {
+      r2Origin = parsed.origin
+      const pathname = parsed.pathname.replace(/\/+$/, '')
+      r2Pattern = {
+        protocol: 'https',
+        hostname: parsed.hostname,
+        pathname: `${pathname || ''}/**`,
+      }
+    }
+  }
+} catch {
+  // A validação definitiva é feita pelas rotas de upload e pela inicialização do app.
+}
+
+const mediaOrigins = ['https://res.cloudinary.com', ...(r2Origin ? [r2Origin] : [])]
+const imageSources = ["'self'", 'data:', 'blob:', ...mediaOrigins, 'https://i.ytimg.com'].join(' ')
+const mediaSources = ["'self'", ...mediaOrigins].join(' ')
+const connectSources = ["'self'", ...mediaOrigins].join(' ')
+
 const nextConfig = {
   serverExternalPackages: ['@prisma/client', '.prisma/client'],
   output: 'standalone',
@@ -10,6 +35,7 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'res.cloudinary.com' },
+      ...(r2Pattern ? [r2Pattern] : []),
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 86400,
@@ -21,9 +47,9 @@ const nextConfig = {
       "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://res.cloudinary.com https://i.ytimg.com",
-      "media-src 'self' https://res.cloudinary.com",
-      "connect-src 'self' https://res.cloudinary.com",
+      `img-src ${imageSources}`,
+      `media-src ${mediaSources}`,
+      `connect-src ${connectSources}`,
       "frame-src https://www.google.com https://open.spotify.com https://www.youtube.com https://youtube.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
@@ -54,7 +80,6 @@ const nextConfig = {
         ],
       },
       {
-        // /api/* — nunca cacheia respostas de autenticação
         source: '/api/auth/(.*)',
         headers: [
           { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, private' },
@@ -62,7 +87,6 @@ const nextConfig = {
         ],
       },
       {
-        // /admin — resposta nunca deve ser cacheada em CDN
         source: '/admin/:path*',
         headers: [
           { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, private' },

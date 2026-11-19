@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, getClientIP } from '@/lib/apiAuth'
 import { rateLimit } from '@/lib/rateLimit'
-import { v2 as cloudinary } from 'cloudinary'
+import { uploadToR2 } from '@/lib/r2'
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
+export const runtime = 'nodejs'
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const ALLOWED_PDF_TYPES   = ['application/pdf']
@@ -17,16 +13,11 @@ const MAX_PDF_BYTES       = 5 * 1024 * 1024  // 5 MB para PDF
 
 function detectFileType(buffer: Buffer): string | null {
   if (buffer.length < 12) return null
-  // JPEG
   if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) return 'image/jpeg'
-  // PNG
   if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) return 'image/png'
-  // GIF
   if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) return 'image/gif'
-  // WebP
   if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
       buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) return 'image/webp'
-  // PDF: %PDF
   if (buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) return 'application/pdf'
   return null
 }
@@ -49,8 +40,6 @@ export async function POST(req: NextRequest) {
   if (!file || !(file instanceof File)) {
     return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 })
   }
-
-  // Verificar tipo declarado
   if (!ALL_ALLOWED.includes(file.type)) {
     return NextResponse.json({ error: 'Tipo não permitido. Use JPEG, PNG, WebP, GIF ou PDF.' }, { status: 400 })
   }
@@ -62,10 +51,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Arquivo muito grande. Máximo ${isPdf ? '5' : '10'} MB.` }, { status: 400 })
   }
 
-  const bytes  = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
-
-  // Validar magic bytes — não confiar no MIME declarado pelo cliente
+  const buffer = Buffer.from(await file.arrayBuffer())
   const actualType = detectFileType(buffer)
   if (!actualType || !ALL_ALLOWED.includes(actualType)) {
     return NextResponse.json({ error: 'Conteúdo do arquivo não é uma imagem ou PDF válido.' }, { status: 400 })
@@ -75,32 +61,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const result = await new Promise<any>((resolve, reject) => {
-      const options: any = {
-        folder: 'cccn',
-        resource_type: isPdf ? 'raw' : 'image',
-        // Para PDFs: sem transformações (não suportado no plano gratuito para raw)
-        // Para imagens: limitar dimensões e qualidade
-        ...(isPdf ? {} : {
-          image_metadata: false,
-          transformation: [
-            { width: 2400, height: 2400, crop: 'limit' },
-            { quality: 'auto:good', fetch_format: 'auto' },
-          ],
-        }),
-      }
-
-      cloudinary.uploader.upload_stream(options, (error, result) =>
-        error ? reject(error) : resolve(result)
-      ).end(buffer)
-    })
-
+    const result = await uploadToR2(buffer, actualType, 'cccn')
     return NextResponse.json({
-      url: result.secure_url,
+      url: result.url,
       tipo: isPdf ? 'pdf' : 'imagem',
       nome: file.name.slice(0, 200),
     })
   } catch {
-    return NextResponse.json({ error: 'Falha no upload.' }, { status: 500 })
+    return NextResponse.json({ error: 'Falha no upload para o armazenamento.' }, { status: 500 })
   }
 }

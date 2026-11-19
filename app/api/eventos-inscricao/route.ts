@@ -5,7 +5,7 @@ import { apiError } from '@/lib/apiError'
 import { requireAuth } from '@/lib/apiAuth'
 import { parseJson } from '@/lib/parseJson'
 import { prisma } from '@/lib/prisma'
-import { isValidCloudinaryUrl } from '@/lib/validators'
+import { isValidMediaUrl } from '@/lib/validators'
 
 function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
   if (!titulo?.trim()) return NextResponse.json({ error: 'Título é obrigatório.' }, { status: 400 })
   if (!dataEncerramento) return NextResponse.json({ error: 'Data de encerramento é obrigatória.' }, { status: 400 })
-  if (fotoUrl && !isValidCloudinaryUrl(fotoUrl)) return NextResponse.json({ error: 'URL de foto inválida.' }, { status: 400 })
+  if (fotoUrl && !isValidMediaUrl(fotoUrl)) return NextResponse.json({ error: 'URL de foto inválida.' }, { status: 400 })
 
   const dataEnc = new Date(dataEncerramento)
   if (isNaN(dataEnc.getTime())) return NextResponse.json({ error: 'Data de encerramento inválida.' }, { status: 400 })

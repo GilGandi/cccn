@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { isValidMediaUrl } from '@/lib/validators'
 import { participanteRepository } from '@/lib/repositories/participanteRepository'
 import { inscricaoRepository } from '@/lib/repositories/inscricaoRepository'
 import {
@@ -89,7 +90,7 @@ export async function executarInscricao(eventoId: string, input: InscricaoInput)
   if (dup) return { ok: false, error: 'Já inscrito neste evento.', inscricaoId: dup.id, status: 400 }
 
   const anexo = input.anexoUrl?.trim() || null
-  if (anexo && !anexo.startsWith('https://res.cloudinary.com/')) {
+  if (anexo && !isValidMediaUrl(anexo)) {
     return { ok: false, error: 'URL de anexo inválida.', status: 400 }
   }
 
