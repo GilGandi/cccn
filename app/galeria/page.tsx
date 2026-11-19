@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import WoodCross from '@/components/WoodCross'
 import GaleriaAlbums from './GaleriaAlbums'
-import { getGoogleDriveGallery } from '@/lib/googleDriveGallery'
+import { getGoogleDriveGallery, type DriveAlbum } from '@/lib/googleDriveGallery'
 
 export default async function Galeria() {
   let publicAlbums: DriveAlbum[] = []
