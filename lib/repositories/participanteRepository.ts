@@ -3,7 +3,6 @@ import { normalizarNome } from '@/lib/domain/rules'
 
 interface CreateData {
   nome: string
-  telefone: string  // obrigatório
   sexo?: string | null
   idade?: number | null
   logradouro?: string | null
@@ -15,7 +14,6 @@ interface CreateData {
 
 interface UpdateData {
   nome?: string
-  telefone?: string
   sexo?: string | null
   idade?: number | null
   logradouro?: string | null
@@ -51,35 +49,17 @@ export const participanteRepository = {
     })
   },
 
-  async findByNomeETelefone(nomeNorm: string, telefoneNorm: string) {
-    if (!telefoneNorm) return null
-    const candidatos = await prisma.participante.findMany({
-      where: { telefone: telefoneNorm },
-      take: 10,
-    })
-    return candidatos.find(p => normalizarNome(p.nome) === nomeNorm) ?? null
-  },
-
   async findByNomeApenas(nomeNorm: string) {
     const todos = await prisma.participante.findMany({ take: 500 })
     return todos.find(p => normalizarNome(p.nome) === nomeNorm) ?? null
   },
 
   async create(data: CreateData) {
-    return prisma.participante.create({
-      data: {
-        ...data,
-        telefone: data.telefone.replace(/\D/g, ''),
-      },
-    })
+    return prisma.participante.create({ data })
   },
 
   async update(id: string, data: UpdateData) {
-    const update: any = { ...data }
-    if (typeof update.telefone === 'string') {
-      update.telefone = update.telefone.replace(/\D/g, '')
-    }
-    return prisma.participante.update({ where: { id }, data: update })
+    return prisma.participante.update({ where: { id }, data })
   },
 
   async delete(id: string) {

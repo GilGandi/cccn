@@ -25,12 +25,10 @@ export async function POST(req: NextRequest) {
   const parsed = await parseJson(req)
   if (!parsed.ok) return parsed.response
 
-  const { nome, telefone, sexo, idade, logradouro, numero, bairro, cidade, estado } = parsed.data
+  const { nome, sexo, idade, logradouro, numero, bairro, cidade, estado } = parsed.data
 
   if (!nome?.trim() || nome.trim().split(/\s+/).length < 2)
     return NextResponse.json({ error: 'Informe nome e sobrenome.' }, { status: 400 })
-  if (!telefone?.trim())
-    return NextResponse.json({ error: 'Telefone é obrigatório.' }, { status: 400 })
   if (sexo && !['M','F'].includes(sexo))
     return NextResponse.json({ error: 'Sexo inválido.' }, { status: 400 })
   if (idade !== undefined && idade !== null) {
@@ -42,7 +40,6 @@ export async function POST(req: NextRequest) {
   try {
     const participante = await participanteRepository.create({
       nome:       nome.trim().slice(0, 200),
-      telefone:   telefone.trim().slice(0, 20),
       sexo:       sexo || null,
       idade:      idade !== undefined && idade !== null ? Number(idade) : null,
       logradouro: logradouro?.trim().slice(0, 200) || null,

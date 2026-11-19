@@ -4,6 +4,12 @@ import { useState } from 'react'
 type Categoria = { id: string; nome: string; cor: string; fotoUrl: string | null }
 type Evento = { id: string; titulo: string; descricao: string | null; data: string; horario: string; categoria: Categoria | null; destaque: boolean; recorrencia?: string }
 
+const MESES_ABREVIADOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+const DIAS_ABREVIADOS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+function dataAbreviada(data: Date) {
+  return `${DIAS_ABREVIADOS[data.getUTCDay()]}, ${data.getUTCDate()} ${MESES_ABREVIADOS[data.getUTCMonth()]} ${data.getUTCFullYear()}`
+}
+
 export default function AgendaFiltro({ eventos, categorias }: { eventos: Evento[]; categorias: Categoria[] }) {
   const [filtro, setFiltro] = useState<string>('todos')
 
@@ -53,7 +59,6 @@ export default function AgendaFiltro({ eventos, categorias }: { eventos: Evento[
           style={{ border: '1px solid rgba(240,237,232,0.12)', gap: 1, background: 'rgba(240,237,232,0.12)' }}>
           {filtrados.map(ev => {
             const data = new Date(ev.data)
-            const dia = data.getUTCDate().toString().padStart(2, '0')
             const cor = ev.categoria?.cor || '#c8b99a'
             const foto = ev.categoria?.fotoUrl
 
@@ -79,10 +84,7 @@ export default function AgendaFiltro({ eventos, categorias }: { eventos: Evento[
                       <span className="font-body text-[0.62rem] text-[#888480]">{ev.horario}</span>
                     </div>
                   </div>
-                  <div className="font-display text-[2rem] text-[#c8b99a] leading-none mb-1">{dia}</div>
-                  <div className="font-body text-[0.6rem] tracking-[0.2em] uppercase text-[#888480] mb-3">
-                    {data.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', weekday: 'short', timeZone: 'UTC' })}
-                  </div>
+                  <div className="font-body text-[0.72rem] tracking-wide text-[#c8b99a] mb-3">{dataAbreviada(data)}</div>
                   <div className="font-display text-[1.2rem] text-[#f0ede8] mb-1">{ev.titulo}</div>
                   {ev.descricao && <p className="font-body font-light text-[0.8rem] text-[#888480] leading-relaxed">{ev.descricao}</p>}
                 </div>

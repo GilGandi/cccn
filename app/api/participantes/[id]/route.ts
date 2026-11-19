@@ -27,17 +27,13 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   const parsed = await parseJson(req)
   if (!parsed.ok) return parsed.response
 
-  const { nome, telefone, sexo, idade, logradouro, numero, bairro, cidade, estado } = parsed.data
+  const { nome, sexo, idade, logradouro, numero, bairro, cidade, estado } = parsed.data
   const data: any = {}
 
   if (nome?.trim()) {
     if (nome.trim().split(/\s+/).length < 2)
       return NextResponse.json({ error: 'Informe nome e sobrenome.' }, { status: 400 })
     data.nome = nome.trim().slice(0, 200)
-  }
-  if (typeof telefone === 'string') {
-    if (!telefone.trim()) return NextResponse.json({ error: 'Telefone é obrigatório.' }, { status: 400 })
-    data.telefone = telefone.trim().slice(0, 20)
   }
   if (sexo !== undefined) {
     if (sexo && !['M','F'].includes(sexo)) return NextResponse.json({ error: 'Sexo inválido.' }, { status: 400 })

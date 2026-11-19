@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return auth.response
   const parsed = await parseJson(req)
   if (!parsed.ok) return parsed.response
-  const { titulo, descricao, fotoUrl, datas, dataEncerramento, telefoneObrig, sexoObrig, idadeObrig, vagas } = parsed.data
+  const { titulo, descricao, fotoUrl, datas, dataEncerramento, sexoObrig, idadeObrig, vagas } = parsed.data
 
   if (!titulo?.trim()) return NextResponse.json({ error: 'Título é obrigatório.' }, { status: 400 })
   if (!dataEncerramento) return NextResponse.json({ error: 'Data de encerramento é obrigatória.' }, { status: 400 })
@@ -47,7 +47,6 @@ export async function POST(req: NextRequest) {
       slug,
       datas: JSON.stringify(Array.isArray(datas) ? datas.slice(0, 20) : []),
       dataEncerramento: dataEnc,
-      telefoneObrig: Boolean(telefoneObrig),
       sexoObrig: Boolean(sexoObrig),
       idadeObrig: Boolean(idadeObrig),
       vagas: vagas ? Math.max(1, Math.min(99999, Number(vagas))) : null,

@@ -49,7 +49,6 @@ export type RecorrenciaType = 'NENHUMA' | 'SEMANAL' | 'QUINZENAL' | 'MENSAL'
 export interface ParticipanteEntity {
   id: string
   nome: string
-  telefone: string | null
   sexo: SexoType | null
   idade: number | null
 }
@@ -63,7 +62,6 @@ export interface EventoInscricaoEntity {
   fotoUrl: string | null
   datas: string[]
   dataEncerramento: Date
-  telefoneObrig: boolean
   sexoObrig: boolean
   idadeObrig: boolean
   vagas: number | null

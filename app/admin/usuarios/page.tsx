@@ -59,8 +59,12 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
   }
   useEffect(() => { load() }, [])
 
-  const openNovo   = () => { setForm({ name:'', username:'', password:'', role:'EDITOR', perfilId:'' }); setEditId(null); setMsg(''); setModal('novo') }
-  const openEditar = (u: User) => { setForm({ name:u.name, username:u.username, password:'', role:u.role, perfilId:u.perfilId||'' }); setEditId(u.id); setMsg(''); setModal('editar') }
+  const openNovo = () => { setForm({ name:'', username:'', password:'', role:'EDITOR', perfilId:'' }); setEditId(null); setMsg(''); setModal('novo') }
+  const openEditar = (u: User) => {
+    const perfilSistema = u.role === 'SUPERADMIN' ? 'perfil_superadmin' : u.role === 'ADMIN' ? 'perfil_admin' : 'perfil_editor'
+    setForm({ name:u.name, username:u.username, password:'', role:u.role, perfilId:u.perfilId || perfilSistema })
+    setEditId(u.id); setMsg(''); setModal('editar')
+  }
 
   const roleOptions = [
     { value:'EDITOR',    label:'Editor' },
@@ -77,12 +81,16 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
     setSaving(true); setMsg('')
     const url = editId ? `/api/usuarios/${editId}` : '/api/usuarios'
     const method = editId ? 'PUT' : 'POST'
-    // Derivar role a partir do perfil selecionado
-    const perfilSel = perfis.find(p => p.id === form.perfilId)
     const roleFromPerfil = form.perfilId === 'perfil_superadmin' ? 'SUPERADMIN'
       : form.perfilId === 'perfil_admin' ? 'ADMIN' : 'EDITOR'
+    const podeAlterarPerfil = isSuperAdmin && editId !== currentUserId
     const body = editId
-      ? { name:form.name, username:form.username, ...(form.password?{password:form.password}:{}) }
+      ? {
+          name: form.name,
+          username: form.username,
+          ...(form.password ? { password: form.password } : {}),
+          ...(podeAlterarPerfil ? { role: roleFromPerfil, perfilId: form.perfilId || null } : {}),
+        }
       : { name:form.name, username:form.username, password:form.password, role:roleFromPerfil, perfilId:form.perfilId||null }
     const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
     if (r.ok) { setModal(null); setMsg(''); load() }
@@ -162,6 +170,18 @@ function AbaUsuarios({ perfis, isSuperAdmin, currentUserId, currentRole }: {
               <label className={lbl}>{modal==='editar'?'Nova senha (em branco = manter)':'Senha *'}</label>
               <input type="password" className={inp} placeholder="Mínimo 8 caracteres" value={form.password} onChange={e => setForm({...form,password:e.target.value})} />
             </div>
+
+            {modal==='editar' && isSuperAdmin && (
+              <div>
+                <label className={lbl}>Perfil de acesso</label>
+                <select className={inp} value={form.perfilId} disabled={editId === currentUserId}
+                  onChange={e => setForm({ ...form, perfilId: e.target.value })}>
+                  <option value="">Sem perfil vinculado</option>
+                  {perfis.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                </select>
+                {editId === currentUserId && <p className="mt-1 text-[0.65rem] text-[#777]">Por segurança, você não pode alterar o próprio perfil de acesso.</p>}
+              </div>
+            )}
 
             {modal==='novo' && (
               <>

@@ -12,6 +12,12 @@ import { safeExternalHref } from '@/lib/safeUrl'
 
 export const revalidate = 0
 
+const MESES_ABREVIADOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+const DIAS_ABREVIADOS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+function dataAbreviada(data: Date) {
+  return `${DIAS_ABREVIADOS[data.getUTCDay()]}, ${data.getUTCDate()} ${MESES_ABREVIADOS[data.getUTCMonth()]} ${data.getUTCFullYear()}`
+}
+
 export default async function Home() {
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
@@ -27,6 +33,9 @@ export default async function Home() {
     }).catch(() => []),
     getConfigs(),
   ])
+  const tiktokUrl = cfg.tiktok_handle
+    ? `https://www.tiktok.com/@${cfg.tiktok_handle}`
+    : safeExternalHref(cfg.tiktok)
 
   return (
     <main className="bg-[#0a0a0a] text-[#f0ede8]">
@@ -41,8 +50,7 @@ export default async function Home() {
             <Image src="/logo.png" alt={`Logo ${cfg.nome_igreja}`} width={88} height={88} className="rounded-full" priority />
           </div>
           <h1 className="font-display font-normal leading-[1.1] text-[#f0ede8] animate-fade-up delay-500" style={{ fontSize: 'clamp(2.4rem,8vw,5.2rem)' }}>
-            {cfg.hero_subtitulo.split(' em Cristo')[0]}<br />
-            <em style={{ color: '#c8b99a' }}>sua família</em> em Cristo
+            {cfg.hero_subtitulo}
           </h1>
           <p className="mt-5 font-body font-light text-[0.75rem] tracking-[0.22em] uppercase text-[#888480] animate-fade-up delay-700">
             {cfg.cidade}
@@ -136,7 +144,6 @@ export default async function Home() {
               )}
               {agenda.map((item: any) => {
                 const data = new Date(item.data)
-                const dia = data.getUTCDate().toString().padStart(2, '0')
                 const cor = item.categoria?.cor || '#c8b99a'
                 const borda = item.categoria ? cor + '55' : 'rgba(240,237,232,0.25)'
                 return (
@@ -146,10 +153,7 @@ export default async function Home() {
                       {item.categoria?.nome || 'Evento'}
                     </span>
                     <div className="absolute top-6 right-6 font-body text-[0.62rem] text-[#888480]">{item.horario}</div>
-                    <div className="font-display text-[2rem] text-[#c8b99a] leading-none mb-1">{dia}</div>
-                    <div className="font-body text-[0.6rem] tracking-[0.2em] uppercase text-[#888480] mb-3">
-                      {data.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', weekday: 'short', timeZone: 'UTC' })}
-                    </div>
+                    <div className="font-body text-[0.72rem] tracking-wide text-[#c8b99a] mb-3">{dataAbreviada(data)}</div>
                     <div className="font-display text-[1.2rem] text-[#f0ede8] mb-1">{item.titulo}</div>
                     <p className="font-body font-light text-[0.8rem] text-[#888480] leading-relaxed">{item.descricao}</p>
                   </div>
@@ -174,8 +178,8 @@ export default async function Home() {
             {[
               { label: 'Endereço',        value: `${cfg.endereco}\n${cfg.bairro} · ${cfg.cidade_estado}` },
               { label: 'Culto principal', value: `${cfg.culto_dia_exibicao || cfg.culto_dia} às ${cfg.culto_horario}` },
-              { label: 'Telefone',        value: cfg.telefone, href: `tel:${cfg.telefone_link}` },
-              { label: 'Instagram',       value: '@' + (cfg.instagram_handle || (cfg.instagram.split('/').pop() || '')), href: cfg.instagram_handle ? `https://instagram.com/${cfg.instagram_handle}` : (safeExternalHref(cfg.instagram) || '#') },
+              { label: 'Instagram', value: '@' + (cfg.instagram_handle || (cfg.instagram.split('/').pop() || '')), href: cfg.instagram_handle ? `https://instagram.com/${cfg.instagram_handle}` : safeExternalHref(cfg.instagram) },
+              ...(tiktokUrl ? [{ label: 'TikTok', value: '@' + (cfg.tiktok_handle || ''), href: tiktokUrl }] : []),
             ].map((item) => (
               <div key={item.label} className="relative z-10">
                 <div className="font-body text-[0.6rem] tracking-[0.25em] uppercase text-[#c8b99a] mb-1">{item.label}</div>

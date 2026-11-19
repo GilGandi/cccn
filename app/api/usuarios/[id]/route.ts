@@ -14,7 +14,7 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   const { id } = await params
   if (!isValidCuid(id)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
 
-  const target = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true, username: true } })
+  const target = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true, perfilId: true, username: true } })
   if (!target) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 })
 
   // EDITOR só pode editar a si próprio
@@ -27,7 +27,7 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
 
   const parsed = await parseJson(req)
   if (!parsed.ok) return parsed.response
-  const { name, username, password } = parsed.data
+  const { name, username, password, role, perfilId } = parsed.data
 
   if (!name?.trim()) return NextResponse.json({ error: 'Nome é obrigatório.' }, { status: 400 })
   if (!username?.trim() || !/^[a-z0-9._-]{3,50}$/i.test(username))
@@ -41,12 +41,39 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   const conflict = await prisma.user.findFirst({ where: { username: usernameLower, NOT: { id } } })
   if (conflict) return NextResponse.json({ error: 'Username já está em uso.' }, { status: 400 })
 
-  // Role NUNCA é alterável por este endpoint
+  const enviouPerfil = role !== undefined || perfilId !== undefined
+  if (enviouPerfil && auth.role !== 'SUPERADMIN')
+    return NextResponse.json({ error: 'Somente o Super Admin pode alterar perfis de acesso.' }, { status: 403 })
+
   const data: any = { name: name.trim().slice(0, 100), username: usernameLower }
   if (password?.trim()) data.password = await bcrypt.hash(password, 12)
 
+  if (enviouPerfil) {
+    const proximoRole = role === undefined ? target.role : role
+    const proximoPerfilId = perfilId === undefined ? target.perfilId : perfilId
+    if (!['SUPERADMIN', 'ADMIN', 'EDITOR'].includes(proximoRole))
+      return NextResponse.json({ error: 'Perfil de acesso inválido.' }, { status: 400 })
+    if (proximoPerfilId !== null && typeof proximoPerfilId !== 'string')
+      return NextResponse.json({ error: 'Perfil de acesso inválido.' }, { status: 400 })
+
+    if (id === auth.userId && (proximoRole !== target.role || proximoPerfilId !== target.perfilId))
+      return NextResponse.json({ error: 'Por segurança, você não pode alterar o próprio perfil de acesso.' }, { status: 403 })
+
+    if (proximoPerfilId) {
+      const perfil = await prisma.perfil.findUnique({ where: { id: proximoPerfilId }, select: { id: true } })
+      if (!perfil) return NextResponse.json({ error: 'O perfil selecionado não existe.' }, { status: 400 })
+      const roleEsperado = proximoPerfilId === 'perfil_superadmin' ? 'SUPERADMIN'
+        : proximoPerfilId === 'perfil_admin' ? 'ADMIN' : 'EDITOR'
+      if (proximoRole !== roleEsperado)
+        return NextResponse.json({ error: 'O papel e o perfil selecionados não correspondem.' }, { status: 400 })
+    }
+
+    data.role = proximoRole
+    data.perfilId = proximoPerfilId
+  }
+
   const updated = await prisma.user.update({ where: { id }, data })
-  return NextResponse.json({ ok: true, id: updated.id, name: updated.name, username: updated.username })
+  return NextResponse.json({ ok: true, id: updated.id, name: updated.name, username: updated.username, role: updated.role, perfilId: updated.perfilId })
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Params }) {
@@ -64,7 +91,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Params }) {
   if (id === auth.userId)
     return NextResponse.json({ error: 'Você não pode deletar sua própria conta.' }, { status: 403 })
 
-  const target = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true, username: true } })
+  const target = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true, perfilId: true, username: true } })
   if (!target) return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 })
 
   // SUPERADMIN nunca pode ser excluído

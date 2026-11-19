@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   if (!isValidCuid(id)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
   const parsed = await parseJson(req)
   if (!parsed.ok) return parsed.response
-  const { titulo, descricao, fotoUrl, datas, dataEncerramento, telefoneObrig, sexoObrig, idadeObrig, vagas, ativo } = parsed.data
+  const { titulo, descricao, fotoUrl, datas, dataEncerramento, sexoObrig, idadeObrig, vagas, ativo } = parsed.data
 
   const data: any = {}
   if (titulo?.trim()) data.titulo = titulo.trim().slice(0, 200)
@@ -38,7 +38,6 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
     if (isNaN(d.getTime())) return NextResponse.json({ error: 'Data inválida.' }, { status: 400 })
     data.dataEncerramento = d
   }
-  if (typeof telefoneObrig === 'boolean') data.telefoneObrig = telefoneObrig
   if (typeof sexoObrig === 'boolean') data.sexoObrig = sexoObrig
   if (typeof idadeObrig === 'boolean') data.idadeObrig = idadeObrig
   if (typeof ativo === 'boolean') data.ativo = ativo

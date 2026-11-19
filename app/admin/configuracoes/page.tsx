@@ -42,11 +42,6 @@ function Secao({ titulo, icon, children }: { titulo: string; icon: string; child
   )
 }
 
-// Converte telefone bruto para link tel: ex: "(49) 9152-9414" → "+554991529414"
-function telParaLink(tel: string): string {
-  return '+55' + tel.replace(/\D/g, '')
-}
-
 // Converte lista de dias para exibição: ['Domingo'] → 'Domingos', ['Domingo','Quarta'] → 'Domingos e Quartas'
 function diasParaExibicao(dias: string[]): string {
   if (!dias.length) return ''
@@ -81,17 +76,6 @@ export default function AdminConfiguracoes() {
 
   const set = (id: string, valor: string) => setCfg(prev => ({ ...prev, [id]: valor }))
   const get = (id: string) => cfg[id] ?? ''
-
-  // Ao mudar telefone, recalcula o link tel: e whatsapp automaticamente
-  const setTelefone = (tel: string) => {
-    const link = telParaLink(tel)
-    setCfg(prev => ({
-      ...prev,
-      telefone: tel,
-      telefone_link: link,
-      whatsapp: `https://wa.me/${link.replace('+', '')}`,
-    }))
-  }
 
   // Ao mudar cidade_estado, sincroniza cidade (hero)
   const setCidade = (v: string) => {
@@ -168,6 +152,7 @@ export default function AdminConfiguracoes() {
             value={get('subtitulo')} onChange={v => set('subtitulo', v)} />
           <Campo id="hero_subtitulo" label="Frase de destaque (hero da home)"
             placeholder="Bem-vindo à sua família em Cristo"
+            hint="Este texto aparece completo no título da página inicial."
             value={get('hero_subtitulo')} onChange={v => set('hero_subtitulo', v)} />
         </Secao>
 
@@ -198,18 +183,8 @@ export default function AdminConfiguracoes() {
         </Secao>
 
         {/* Contato */}
-        <Secao titulo="Contato e Redes" icon="📞">
-          <div>
-            <label className={lbl}>Telefone</label>
-            <input className={inp} placeholder="(49) 9152-9414"
-              value={get('telefone')}
-              onChange={e => setTelefone(e.target.value)} />
-            <p className="font-body text-[0.6rem] text-[#555] mt-1">
-              O link <code className="text-[#c8b99a]">tel:</code> e o link do WhatsApp são gerados automaticamente.
-              {get('whatsapp') && <span className="ml-1 text-[#888]">WhatsApp: {get('whatsapp')}</span>}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Secao titulo="Redes sociais" icon="◎">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             <div>
               <label className={lbl}>Instagram</label>
               <div className="flex">
@@ -233,6 +208,19 @@ export default function AdminConfiguracoes() {
                     const h = e.target.value.replace(/[^a-zA-Z0-9._]/g, '')
                     set('facebook_handle', h)
                     set('facebook', `https://facebook.com/${h}`)
+                  }} />
+              </div>
+            </div>
+            <div>
+              <label className={lbl}>TikTok</label>
+              <div className="flex">
+                <span className="flex items-center px-3 bg-white/[0.04] border border-r-0 border-white/[0.08] rounded-l-md font-body text-[0.78rem] text-[#555]">tiktok.com/@</span>
+                <input className={inp + ' rounded-l-none'} placeholder="cccnchurch"
+                  value={get('tiktok_handle')}
+                  onChange={e => {
+                    const h = e.target.value.replace(/[^a-zA-Z0-9._]/g, '')
+                    set('tiktok_handle', h)
+                    set('tiktok', h ? `https://www.tiktok.com/@${h}` : '')
                   }} />
               </div>
             </div>
@@ -280,7 +268,7 @@ export default function AdminConfiguracoes() {
         <Secao titulo="Doações / Pix" icon="💰">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Campo id="pix_tipo" label="Tipo da chave Pix"
-              placeholder="CNPJ, CPF, e-mail, telefone..."
+              placeholder="CNPJ, CPF, e-mail ou chave aleatória"
               value={get('pix_tipo')} onChange={v => set('pix_tipo', v)} />
             <Campo id="pix_chave" label="Chave Pix"
               placeholder="18.702.714/0001-07"

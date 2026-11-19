@@ -14,7 +14,7 @@ const lbl = "block font-body text-[0.6rem] tracking-[0.18em] uppercase text-[#66
 const emptyForm = {
   titulo: '', descricao: '', fotoUrl: '', dataEncerramento: '',
   datas: [] as string[], novaData: '',
-  telefoneObrig: false, sexoObrig: false, idadeObrig: false, enderecoObrig: false,
+  sexoObrig: false, idadeObrig: false, enderecoObrig: false,
   campoAnexoLabel: '', vagas: '', ativo: true,
 }
 
@@ -229,7 +229,6 @@ export default function AdminEventosInscricao() {
               <label className={lbl}>Campos obrigatórios</label>
               <div className="flex flex-wrap gap-3">
                 {[
-                  { key: 'telefoneObrig', label: 'Telefone' },
                   { key: 'sexoObrig',     label: 'Sexo' },
                   { key: 'idadeObrig',    label: 'Idade' },
                   { key: 'enderecoObrig', label: 'Endereço' },
@@ -288,7 +287,7 @@ export default function AdminEventosInscricao() {
                 <div className="flex-1 min-w-0">
                   <div className="font-body text-[0.85rem] text-[#f0ede8]">{ins.participante.nome}</div>
                   <div className="font-body text-[0.72rem] text-[#555] mt-0.5">
-                    {[ins.participante.telefone, ins.participante.sexo === 'M' ? 'Masc.' : ins.participante.sexo === 'F' ? 'Fem.' : null, ins.participante.idade ? `${ins.participante.idade} anos` : null].filter(Boolean).join(' · ')}
+                    {[ins.participante.sexo === 'M' ? 'Masc.' : ins.participante.sexo === 'F' ? 'Fem.' : null, ins.participante.idade ? `${ins.participante.idade} anos` : null].filter(Boolean).join(' · ')}
                   </div>
                 </div>
                 <button onClick={() => delInscricao(ins.id, eventoSel.id)}

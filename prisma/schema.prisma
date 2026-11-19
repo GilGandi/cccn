@@ -101,8 +101,8 @@ model GaleriaCategoria {
   id        String   @id @default(cuid())
   nome      String
   descricao String?
-  ordem     Int      @default(0)
   capaUrl   String?
+  ordem     Int      @default(0)
   createdAt DateTime @default(now())
   fotos     Foto[]
 }
@@ -143,7 +143,6 @@ model Perfil {
 model Participante {
   id           String    @id @default(cuid())
   nome         String
-  telefone     String    // obrigatório
   sexo         String?   // M | F
   idade        Int?
   logradouro   String?
@@ -164,8 +163,7 @@ model EventoInscricao {
   descricao        String?
   fotoUrl          String?
   slug             String    @unique
-  // Campos obrigatórios na inscrição
-  telefoneObrig    Boolean   @default(false)
+  // Campos solicitados na inscrição
   sexoObrig        Boolean   @default(false)
   idadeObrig       Boolean   @default(false)
   enderecoObrig    Boolean   @default(false)

@@ -32,7 +32,5 @@
     "typescript": "^5.8.3"
   },
   "devDependencies": {},
-  "engines": {
-    "node": ">=20.9.0"
-  }
+  "engines": { "node": ">=20.9.0" }
 }

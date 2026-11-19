@@ -82,7 +82,6 @@ export default async function EventoPage({ params }: Props) {
             <FormInscricao
               eventoId={evento.id}
               eventoSlug={evento.slug}
-              telefoneObrig={evento.telefoneObrig}
               sexoObrig={evento.sexoObrig}
               idadeObrig={evento.idadeObrig}
               campoAnexoLabel={(evento as any).campoAnexoLabel || null}

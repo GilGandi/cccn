@@ -5,7 +5,6 @@ import ModalLGPD from '@/components/ModalLGPD'
 interface Props {
   eventoId: string
   eventoSlug: string
-  telefoneObrig: boolean
   sexoObrig: boolean
   idadeObrig: boolean
   campoAnexoLabel: string | null
@@ -25,20 +24,11 @@ function saveInscricao(slug: string, data: { inscricaoId: string; nome: string }
 }
 
 
-function mascaraTelefone(v: string): string {
-  const d = v.replace(/\D/g, '').slice(0, 11)
-  if (d.length <= 2)  return d.length ? `(${d}` : ''
-  if (d.length <= 6)  return `(${d.slice(0,2)}) ${d.slice(2)}`
-  if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`
-  return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`
-}
-
 const inp = "w-full bg-[#111] border border-white/[0.08] text-[#f0ede8] font-body text-[0.9rem] px-4 py-3 rounded-md outline-none focus:border-[#c8b99a]/60 transition-colors placeholder:text-[#444]"
 const lbl = "block font-body text-[0.65rem] tracking-[0.18em] uppercase text-[#888480] mb-2"
 
-export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sexoObrig, idadeObrig, campoAnexoLabel, enderecoObrig, vagasRestantes }: Props) {
+export default function FormInscricao({ eventoId, eventoSlug, sexoObrig, idadeObrig, campoAnexoLabel, enderecoObrig, vagasRestantes }: Props) {
   const [nome, setNome]         = useState('')
-  const [telefone, setTelefone] = useState('')
   const [sexo, setSexo]         = useState('')
   const [idade, setIdade]       = useState('')
   const [logradouro, setLogradouro] = useState('')
@@ -76,7 +66,7 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
     const r = await fetch(`/api/eventos-inscricao/${eventoId}/inscricoes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, telefone, sexo, idade: idade ? Number(idade) : null, logradouro, numero, bairro, cidade, estado, anexoUrl: anexoUrlFinal }),
+      body: JSON.stringify({ nome, sexo, idade: idade ? Number(idade) : null, logradouro, numero, bairro, cidade, estado, anexoUrl: anexoUrlFinal }),
     })
     const d = await r.json()
 
@@ -175,11 +165,6 @@ export default function FormInscricao({ eventoId, eventoSlug, telefoneObrig, sex
 
         {/* Endereço */}
         <div className="flex flex-col gap-4">
-          <div>
-            <label className={lbl}>Telefone *</label>
-            <input className={inp} placeholder="(49) 99999-9999" maxLength={15} value={telefone}
-              onChange={e => setTelefone(mascaraTelefone(e.target.value))} />
-          </div>
           {enderecoObrig && (
             <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] flex flex-col gap-3">
               <p className="font-body text-[0.62rem] tracking-widest uppercase text-[#888480]">Endereço {enderecoObrig ? '*' : '(opcional)'}</p>
