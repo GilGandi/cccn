@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/apiAuth'
 import { parseJson } from '@/lib/parseJson'
 import { prisma } from '@/lib/prisma'
-import { isValidCuid, isValidCloudinaryUrl } from '@/lib/validators'
+import { isValidCuid, isValidMediaUrl } from '@/lib/validators'
 
 type Params = Promise<{ id: string }>
 
@@ -14,7 +14,7 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   const parsed = await parseJson(req)
   if (!parsed.ok) return parsed.response
   const { nome, descricao, ordem, capaUrl } = parsed.data
-  if (capaUrl !== undefined && capaUrl !== null && !isValidCloudinaryUrl(capaUrl))
+  if (capaUrl !== undefined && capaUrl !== null && !isValidMediaUrl(capaUrl))
     return NextResponse.json({ error: 'URL de capa inválida.' }, { status: 400 })
   try {
     const cat = await prisma.galeriaCategoria.update({

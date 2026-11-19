@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/apiAuth'
 import { parseJson } from '@/lib/parseJson'
 import { prisma } from '@/lib/prisma'
-import { isValidCuid, isValidCloudinaryUrl } from '@/lib/validators'
+import { isValidCuid, isValidMediaUrl } from '@/lib/validators'
 
 type Params = Promise<{ id: string }>
 
@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
   if (titulo?.trim()) data.titulo = titulo.trim().slice(0, 200)
   if (typeof descricao === 'string') data.descricao = descricao.trim().slice(0, 2000) || null
   if (fotoUrl !== undefined) {
-    if (fotoUrl && !isValidCloudinaryUrl(fotoUrl)) return NextResponse.json({ error: 'URL de foto inválida.' }, { status: 400 })
+    if (fotoUrl && !isValidMediaUrl(fotoUrl)) return NextResponse.json({ error: 'URL de foto inválida.' }, { status: 400 })
     data.fotoUrl = fotoUrl || null
   }
   if (Array.isArray(datas)) data.datas = JSON.stringify(datas.slice(0, 20))
