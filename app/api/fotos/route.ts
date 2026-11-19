@@ -5,7 +5,7 @@ import { apiError } from '@/lib/apiError'
 import { parseJson } from '@/lib/parseJson'
 import { requireAuth } from '@/lib/apiAuth'
 import { prisma } from '@/lib/prisma'
-import { isValidCloudinaryUrl } from '@/lib/validators'
+import { isValidMediaUrl } from '@/lib/validators'
 
 const ALLOWED_GALERIAS = ['geral', 'cultos', 'jovens', 'homens', 'mulheres', 'familia', 'eventos']
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const body = parsed.data
 
   const { url, legenda, galeria, categoriaId } = body
-  if (!url || !isValidCloudinaryUrl(url))
+  if (!url || !isValidMediaUrl(url))
     return NextResponse.json({ error: 'URL de imagem inválida. Use o upload interno.' }, { status: 400 })
 
   const galeriaValida = ALLOWED_GALERIAS.includes(galeria) ? galeria : 'geral'

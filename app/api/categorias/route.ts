@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { parseJson } from '@/lib/parseJson'
 import { requireAuth } from '@/lib/apiAuth'
 import { prisma } from '@/lib/prisma'
-import { isValidHexColor, isValidCloudinaryUrl } from '@/lib/validators'
+import { isValidHexColor, isValidMediaUrl } from '@/lib/validators'
 
 export async function GET() {
   const categorias = await prisma.categoria.findMany({
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   if (!nome?.trim()) return NextResponse.json({ error: 'Nome é obrigatório.' }, { status: 400 })
   if (cor && !isValidHexColor(cor))
     return NextResponse.json({ error: 'Cor inválida. Use formato hex (#RRGGBB).' }, { status: 400 })
-  if (fotoUrl && !isValidCloudinaryUrl(fotoUrl))
+  if (fotoUrl && !isValidMediaUrl(fotoUrl))
     return NextResponse.json({ error: 'URL de foto inválida.' }, { status: 400 })
 
   const cat = await prisma.categoria.create({

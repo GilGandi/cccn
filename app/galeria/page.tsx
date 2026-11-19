@@ -1,39 +1,19 @@
-export const revalidate = 0
+export const revalidate = 300
 
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import WoodCross from '@/components/WoodCross'
 import GaleriaAlbums from './GaleriaAlbums'
-import { prisma } from '@/lib/prisma'
-
-type GalleryPhoto = { id: string; url: string; legenda: string | null }
-type GalleryAlbum = { id: string; nome: string; descricao: string | null; capaUrl: string | null; fotos: GalleryPhoto[] }
+import { getGoogleDriveGallery } from '@/lib/googleDriveGallery'
 
 export default async function Galeria() {
-  const [albuns, semAlbum] = await Promise.all([
-    prisma.galeriaCategoria.findMany({
-      orderBy: { ordem: 'asc' },
-      include: { fotos: { orderBy: { createdAt: 'desc' }, take: 200 } },
-    }).catch(() => []),
-    prisma.foto.findMany({ where: { categoriaId: null }, orderBy: { createdAt: 'desc' }, take: 200 }).catch(() => []),
-  ])
-
-  const publicAlbums: GalleryAlbum[] = [
-    ...albuns.filter(album => album.fotos.length > 0).map(album => ({
-      id: album.id,
-      nome: album.nome,
-      descricao: album.descricao,
-      capaUrl: album.capaUrl,
-      fotos: album.fotos.map(foto => ({ id: foto.id, url: foto.url, legenda: foto.legenda })),
-    })),
-    ...(semAlbum.length ? [{
-      id: 'sem-album',
-      nome: 'Geral',
-      descricao: null,
-      capaUrl: null,
-      fotos: semAlbum.map(foto => ({ id: foto.id, url: foto.url, legenda: foto.legenda })),
-    }] : []),
-  ]
+  let publicAlbums: DriveAlbum[] = []
+  let unavailable = false
+  try {
+    publicAlbums = await getGoogleDriveGallery()
+  } catch {
+    unavailable = true
+  }
   const totalFotos = publicAlbums.reduce((total, album) => total + album.fotos.length, 0)
 
   return (
@@ -49,7 +29,9 @@ export default async function Galeria() {
       </section>
 
       <div className="mx-auto max-w-[1400px] px-6 py-10 sm:px-10 lg:px-16 lg:py-14">
-        {totalFotos === 0 ? (
+        {unavailable ? (
+          <p className="py-20 text-center font-body text-[0.98rem] text-[#aaa]">A galeria está temporariamente indisponível.</p>
+        ) : totalFotos === 0 ? (
           <p className="py-20 text-center font-body text-[0.98rem] text-[#aaa]">Nenhuma foto disponível no momento.</p>
         ) : (
           <GaleriaAlbums albuns={publicAlbums} />
