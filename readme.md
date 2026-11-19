@@ -2,33 +2,50 @@
 
 Site oficial da C.C.C.N Ministério Apostólico do Coração de Deus.
 
-## Tecnologias e mídia
+## Tecnologias
 
-- **Next.js** (App Router), TypeScript e Tailwind CSS
+- **Next.js 15** (App Router)
+- **TypeScript** + **Tailwind CSS**
 - **Prisma + PostgreSQL**
-- **Google Drive API** (leitura da galeria pública)
+- **Cloudinary** (upload de imagens)
 - **NextAuth** (autenticação)
 - **Railway** (deploy)
 
-A galeria é somente leitura: imagens em subpastas imediatas da pasta configurada aparecem como álbuns; imagens soltas aparecem em “Geral”. Para atualizar o conteúdo, organize os arquivos diretamente no Google Drive.
+---
 
 ## Deploy no Railway
 
-1. Crie o projeto a partir do repositório e adicione PostgreSQL; o Railway injeta `DATABASE_URL`.
-2. Configure as variáveis de ambiente abaixo.
-3. Defina a pasta do Google Drive como **qualquer pessoa com o link pode visualizar** e habilite a Google Drive API no projeto associado à chave.
-4. Faça o deploy.
+### 1. Criar o projeto
+Acesse https://railway.app → **New Project → Deploy from GitHub repo**
 
-| Variável | Uso |
+### 2. Adicionar banco de dados
+No painel: **New → Database → Add PostgreSQL**  
+O Railway injeta `DATABASE_URL` automaticamente.
+
+### 3. Variáveis de ambiente
+No serviço: **Variables → New Variable**
+
+| Variável | Valor |
 |---|---|
-| `DATABASE_URL` | Conexão PostgreSQL |
-| `NEXTAUTH_URL` | URL pública do site |
-| `NEXTAUTH_SECRET` | Segredo de autenticação (`openssl rand -base64 32`) |
-| `GOOGLE_DRIVE_GALLERY_FOLDER_URL` | URL ou ID da pasta pública da galeria |
-| `GOOGLE_DRIVE_API_KEY` | Chave de servidor da Google Drive API |
-| `NODE_ENV` | `production` no deploy |
+| `DATABASE_URL` | Gerado automaticamente |
+| `NEXTAUTH_URL` | `https://SEU-DOMINIO.up.railway.app` |
+| `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
+| `CLOUDINARY_CLOUD_NAME` | Seu cloud name |
+| `CLOUDINARY_API_KEY` | Sua API key |
+| `CLOUDINARY_API_SECRET` | Seu API secret |
+| `NODE_ENV` | `production` |
 
-A variável da pasta pode ser adicionada/alterada sem mudanças no código. A chave da API deve permanecer apenas no ambiente do servidor, nunca com prefixo `NEXT_PUBLIC_`.
+### 4. Deploy
+O Railway faz automaticamente após configurar as variáveis.
+
+### 5. Criar admin
+```bash
+curl -X POST https://SEU-DOMINIO.up.railway.app/api/seed
+```
+- Email: `admin@cccn.com.br` / Senha: `cccn@2024`
+- **Mude a senha após o primeiro login!**
+
+---
 
 ## Rodar localmente
 
@@ -39,11 +56,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-Para criar uma conta administrativa, siga o procedimento de seed configurado no ambiente da aplicação e troque a senha inicial após o primeiro acesso.
-
-## Imagens fora da galeria
-
-Os campos administrativos de imagem aceitam uma URL HTTPS pública. O envio de imagens e anexos para serviços externos foi removido; anexo de arquivo em inscrições não está disponível nesta versão. URLs antigas já salvas no banco e arquivos existentes nos serviços externos não são apagados por esta alteração.
+---
 
 ## Dados da Igreja
 
