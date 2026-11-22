@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { safeImageSrc } from '@/lib/safeUrl'
 
 type GalleryPhoto = { id: string; url: string; legenda: string | null }
-type GalleryAlbum = { id: string; nome: string; descricao: string | null; capaUrl: string | null; fotos: GalleryPhoto[] }
+type GalleryAlbum = { id: string; nome: string; descricao: string | null; capaUrl: string | null; categoria: string | null; fotos: GalleryPhoto[] }
 
 export default function GaleriaAlbums({ albuns }: { albuns: GalleryAlbum[] }) {
   const [albumAbertoId, setAlbumAbertoId] = useState<string | null>(null)
@@ -44,9 +44,10 @@ export default function GaleriaAlbums({ albuns }: { albuns: GalleryAlbum[] }) {
             <button
               key={album.id}
               type="button"
-              onClick={() => { setFotoIndex(0); setAlbumAbertoId(album.id) }}
+              onClick={() => { if (album.fotos.length) { setFotoIndex(0); setAlbumAbertoId(album.id) } }}
               aria-label={`Abrir álbum ${album.nome}`}
-              className="group overflow-hidden rounded-xl border border-white/[0.09] bg-[#101010] text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#c8b99a]/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c8b99a]"
+              disabled={!album.fotos.length}
+              className="group overflow-hidden rounded-xl border border-white/[0.09] bg-[#101010] text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#c8b99a]/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c8b99a] disabled:cursor-default disabled:hover:translate-y-0"
             >
               <div className="relative aspect-[4/3] overflow-hidden bg-[#171614]">
                 {coverSrc ? (
@@ -56,7 +57,10 @@ export default function GaleriaAlbums({ albuns }: { albuns: GalleryAlbum[] }) {
                 )}
               </div>
               <div className="p-5 sm:p-6">
-                <h2 className="font-display text-[1.4rem] leading-snug text-[#f0ede8]">{album.nome}</h2>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="font-display text-[1.4rem] leading-snug text-[#f0ede8]">{album.nome}</h2>
+                  {album.categoria && <span className="rounded-full border border-[#c8b99a]/30 px-2.5 py-1 font-body text-[0.65rem] uppercase tracking-wider text-[#c8b99a]">{album.categoria}</span>}
+                </div>
                 {album.descricao && <p className="mt-2 font-body text-[0.88rem] leading-relaxed text-[#aaa69f]">{album.descricao}</p>}
               </div>
             </button>

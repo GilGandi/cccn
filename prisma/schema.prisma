@@ -75,8 +75,8 @@ model Foto {
   galeria     String           @default("geral")
   categoriaId String?
   categoria   GaleriaCategoria? @relation(fields: [categoriaId], references: [id])
-  ordem     Int      @default(0)
-  createdAt DateTime @default(now())
+  ordem       Int              @default(0)
+  createdAt   DateTime         @default(now())
 }
 
 model Aviso {
@@ -98,13 +98,15 @@ model Playlist {
 }
 
 model GaleriaCategoria {
-  id        String   @id @default(cuid())
-  nome      String
-  descricao String?
-  capaUrl   String?
-  ordem     Int      @default(0)
-  createdAt DateTime @default(now())
-  fotos     Foto[]
+  id            String   @id @default(cuid())
+  nome          String
+  descricao     String?
+  capaUrl       String?
+  categoria     String?
+  driveFolderId String?  @unique
+  ordem         Int      @default(0)
+  createdAt     DateTime @default(now())
+  fotos         Foto[]
 }
 
 model Config {
@@ -177,8 +179,6 @@ model EventoInscricao {
   updatedAt        DateTime  @updatedAt
   inscricoes       Inscricao[]
 }
-
-// ─── Inscrições (vínculo participante ↔ evento) ───────────────────────────────
 
 model PushSubscription {
   id        String   @id @default(cuid())

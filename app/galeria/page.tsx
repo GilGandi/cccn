@@ -4,13 +4,14 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import WoodCross from '@/components/WoodCross'
 import GaleriaAlbums from './GaleriaAlbums'
-import { getGoogleDriveGallery, type DriveAlbum } from '@/lib/googleDriveGallery'
+import { getConfiguredGallery } from '@/lib/galleryAlbums'
+import type { DriveAlbum } from '@/lib/googleDriveGallery'
 
 export default async function Galeria() {
   let publicAlbums: DriveAlbum[] = []
   let unavailable = false
   try {
-    publicAlbums = await getGoogleDriveGallery()
+    publicAlbums = await getConfiguredGallery()
   } catch {
     unavailable = true
   }
@@ -31,8 +32,8 @@ export default async function Galeria() {
       <div className="mx-auto max-w-[1400px] px-6 py-10 sm:px-10 lg:px-16 lg:py-14">
         {unavailable ? (
           <p className="py-20 text-center font-body text-[0.98rem] text-[#aaa]">A galeria está temporariamente indisponível.</p>
-        ) : totalFotos === 0 ? (
-          <p className="py-20 text-center font-body text-[0.98rem] text-[#aaa]">Nenhuma foto disponível no momento.</p>
+        ) : publicAlbums.length === 0 ? (
+          <p className="py-20 text-center font-body text-[0.98rem] text-[#aaa]">Nenhum álbum disponível no momento.</p>
         ) : (
           <GaleriaAlbums albuns={publicAlbums} />
         )}
