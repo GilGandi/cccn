@@ -10,6 +10,9 @@ type GalleryAlbum = { id: string; nome: string; descricao: string | null; capaUr
 export default function GaleriaAlbums({ albuns }: { albuns: GalleryAlbum[] }) {
   const [albumAbertoId, setAlbumAbertoId] = useState<string | null>(null)
   const [fotoIndex, setFotoIndex] = useState(0)
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState('')
+  const categorias = [...new Set(albuns.map(album => album.categoria?.trim()).filter((categoria): categoria is string => Boolean(categoria)))]
+  const albunsVisiveis = categoriaSelecionada ? albuns.filter(album => album.categoria?.trim() === categoriaSelecionada) : albuns
   const albumAberto = albuns.find(album => album.id === albumAbertoId) ?? null
   const fotoAberta = albumAberto?.fotos[fotoIndex] ?? null
 
@@ -37,8 +40,14 @@ export default function GaleriaAlbums({ albuns }: { albuns: GalleryAlbum[] }) {
 
   return (
     <>
+      {categorias.length > 0 && (
+        <nav aria-label="Filtrar álbuns por categoria" className="mb-6 flex flex-wrap gap-2">
+          <button type="button" onClick={() => setCategoriaSelecionada('')} aria-pressed={!categoriaSelecionada} className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${!categoriaSelecionada ? 'border-[#c8b99a] bg-[#c8b99a] text-[#0a0a0a]' : 'border-white/15 text-[#ccc] hover:border-[#c8b99a]/60'}`}>Todas</button>
+          {categorias.map(categoria => <button key={categoria} type="button" onClick={() => setCategoriaSelecionada(categoria)} aria-pressed={categoriaSelecionada === categoria} className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${categoriaSelecionada === categoria ? 'border-[#c8b99a] bg-[#c8b99a] text-[#0a0a0a]' : 'border-white/15 text-[#ccc] hover:border-[#c8b99a]/60'}`}>{categoria}</button>)}
+        </nav>
+      )}
       <section aria-label="Álbuns da galeria" className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {albuns.map(album => {
+        {albunsVisiveis.map(album => {
           const coverSrc = safeImageSrc(album.capaUrl || album.fotos[0]?.url || '')
           return (
             <button
@@ -82,7 +91,10 @@ export default function GaleriaAlbums({ albuns }: { albuns: GalleryAlbum[] }) {
                 <h2 className="truncate font-display text-lg text-[#f0ede8] sm:text-xl">{albumAberto.nome}</h2>
                 <p className="mt-0.5 font-body text-xs text-[#aaa]">{fotoIndex + 1} de {albumAberto.fotos.length}</p>
               </div>
-              <button type="button" onClick={fecharAlbum} aria-label="Fechar álbum" className="shrink-0 rounded-full border border-white/20 px-3 py-2 text-sm text-white transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c8b99a]">Fechar <span aria-hidden="true">×</span></button>
+              <div className="flex shrink-0 items-center gap-2">
+                <a href={`/api/galeria-drive/download?id=${encodeURIComponent(fotoAberta.id)}&name=${encodeURIComponent(fotoAberta.legenda || `${albumAberto.nome}-${fotoIndex + 1}`)}`} className="rounded-full bg-[#c8b99a] px-3 py-2 text-sm font-medium text-[#0a0a0a] transition-colors hover:bg-[#d4c8b0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c8b99a]">Baixar foto</a>
+                <button type="button" onClick={fecharAlbum} aria-label="Fechar álbum" className="rounded-full border border-white/20 px-3 py-2 text-sm text-white transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c8b99a]">Fechar <span aria-hidden="true">×</span></button>
+              </div>
             </header>
 
             <div className="relative flex shrink-0 items-center justify-center bg-black px-12 py-3 sm:px-16">

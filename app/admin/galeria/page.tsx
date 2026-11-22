@@ -58,7 +58,7 @@ export default function AdminGaleria() {
       const response = await fetch('/api/galeria-drive', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ albumId: album.id, descricao: album.descricao, categoria: album.categoria, capaUrl: album.capaUrl }),
+        body: JSON.stringify({ albumId: album.id, nome: album.nome, descricao: album.descricao, categoria: album.categoria, capaUrl: album.capaUrl }),
       })
       const data = await response.json() as { error?: string }
       if (!response.ok) throw new Error(data.error || 'Não foi possível salvar o álbum.')
@@ -108,6 +108,10 @@ export default function AdminGaleria() {
 
               <div className="grid gap-5 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(220px,0.7fr)] sm:p-6">
                 <div className="space-y-4">
+                  <label className="block font-body text-sm text-[#d6d2cc]">
+                    Título do álbum
+                    <input maxLength={120} value={album.nome} onChange={event => atualizarAlbum(album.id, { nome: event.target.value })} className={inputClass} placeholder="Título exibido no site" />
+                  </label>
                   <label className="block font-body text-sm text-[#d6d2cc]">
                     Descrição
                     <textarea rows={3} maxLength={500} value={album.descricao ?? ''} onChange={event => atualizarAlbum(album.id, { descricao: event.target.value })} className={inputClass} placeholder="Conte um pouco sobre este álbum" />

@@ -33,10 +33,7 @@ No serviço: **Variables → New Variable**
 | `CLOUDINARY_CLOUD_NAME` | Seu cloud name |
 | `CLOUDINARY_API_KEY` | Sua API key |
 | `CLOUDINARY_API_SECRET` | Seu API secret |
-| `GOOGLE_DRIVE_GALLERY_FOLDER_URL` | Link da pasta pública do Google Drive (acesso de leitor) |
 | `NODE_ENV` | `production` |
-
-A galeria usa somente leitura da pasta pública e não exige token nem chave da API do Google Drive. No painel administrativo, cada subpasta pode ter capa, descrição e categoria próprias.
 
 ### 4. Deploy
 O Railway faz automaticamente após configurar as variáveis.

@@ -5,15 +5,15 @@ import { getConfiguredGallery } from '@/lib/galleryAlbums'
 import { getGoogleDriveGallery, getGoogleDriveGalleryFolderName } from '@/lib/googleDriveGallery'
 import { prisma } from '@/lib/prisma'
 
-export const revalidate = 300
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
     const [albuns, nomePasta] = await Promise.all([getConfiguredGallery(), getGoogleDriveGalleryFolderName()])
-    return NextResponse.json({ albuns, nomePasta })
+    return NextResponse.json({ albuns, nomePasta }, { headers: { 'Cache-Control': 'no-store, max-age=0' } })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Não foi possível ler a pasta pública configurada do Google Drive.'
-    return NextResponse.json({ error: message }, { status: 503 })
+    return NextResponse.json({ error: message }, { status: 503, headers: { 'Cache-Control': 'no-store, max-age=0' } })
   }
 }
 
@@ -23,10 +23,13 @@ export async function PUT(req: NextRequest) {
 
   const parsed = await parseJson(req)
   if (!parsed.ok) return parsed.response
-  const { albumId, descricao, categoria, capaUrl } = parsed.data
+  const { albumId, nome, descricao, categoria, capaUrl } = parsed.data
 
   if (typeof albumId !== 'string' || !albumId.trim()) {
     return NextResponse.json({ error: 'Álbum inválido.' }, { status: 400 })
+  }
+  if (nome != null && typeof nome !== 'string') {
+    return NextResponse.json({ error: 'O título informado é inválido.' }, { status: 400 })
   }
   if (descricao != null && typeof descricao !== 'string') {
     return NextResponse.json({ error: 'A descrição informada é inválida.' }, { status: 400 })
@@ -48,7 +51,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const data = {
-      nome: album.nome,
+      nome: typeof nome === 'string' && nome.trim() ? nome.trim().slice(0, 120) : album.nome,
       descricao: descricao?.trim().slice(0, 500) || null,
       capaUrl: normalizedCover,
       categoria: categoria?.trim().slice(0, 80) || null,
@@ -61,6 +64,6 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ ok: true, albumId: saved.driveFolderId })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Não foi possível salvar os dados do álbum.'
-    return NextResponse.json({ error: message }, { status: 503 })
+    return NextResponse.json({ error: message }, { status: 503, headers: { 'Cache-Control': 'no-store, max-age=0' } })
   }
 }

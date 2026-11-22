@@ -79,7 +79,7 @@ async function folderPage(folderId: string): Promise<string> {
   url.hash = 'grid'
   const response = await fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CCCNGallery/1.0)' },
-    next: { revalidate: 300 },
+    cache: 'no-store',
   })
   if (!response.ok) throw new Error(`Não foi possível ler a pasta pública do Google Drive (status ${response.status}).`)
   const html = await response.text()

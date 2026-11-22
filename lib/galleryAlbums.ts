@@ -12,6 +12,7 @@ export async function getConfiguredGallery() {
     const config = byFolderId.get(album.id)
     return {
       ...album,
+      nome: config?.nome?.trim() || album.nome,
       descricao: config?.descricao ?? album.descricao,
       capaUrl: config?.capaUrl && album.fotos.some(foto => foto.url === config.capaUrl)
         ? config.capaUrl
