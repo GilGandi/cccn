@@ -27,6 +27,7 @@ export default function AdminGaleria() {
   const [erro, setErro] = useState('')
   const [aviso, setAviso] = useState('')
   const [salvandoId, setSalvandoId] = useState('')
+  const [albumSeletorCapaId, setAlbumSeletorCapaId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const carregar = useCallback(async () => {
@@ -46,14 +47,32 @@ export default function AdminGaleria() {
   }, [])
 
   useEffect(() => { void carregar() }, [carregar])
+  useEffect(() => {
+    if (!albumSeletorCapaId) return
+    const overflowAnterior = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const fecharComEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setAlbumSeletorCapaId(null) }
+    window.addEventListener('keydown', fecharComEscape)
+    return () => {
+      document.body.style.overflow = overflowAnterior
+      window.removeEventListener('keydown', fecharComEscape)
+    }
+  }, [albumSeletorCapaId])
+
   const total = albuns.reduce((sum, album) => sum + album.fotos.length, 0)
   const totalVideos = albuns.reduce((sum, album) => sum + album.fotos.filter(isVideo).length, 0)
   const totalFotos = total - totalVideos
   const categorias = useMemo(() => [...new Set(albuns.map(album => album.categoria?.trim()).filter((item): item is string => Boolean(item)))], [albuns])
+  const albumSeletorCapa = albuns.find(album => album.id === albumSeletorCapaId) ?? null
 
   const atualizarAlbum = (albumId: string, patch: Partial<Album>) => {
     setAlbuns(current => current.map(album => album.id === albumId ? { ...album, ...patch } : album))
     setAviso('')
+  }
+
+  const escolherCapa = (album: Album, item: Midia | null) => {
+    atualizarAlbum(album.id, { capaUrl: item ? (item.thumbnailUrl || item.url) : null })
+    setAlbumSeletorCapaId(null)
   }
 
   const salvarAlbum = async (album: Album) => {
@@ -103,6 +122,8 @@ export default function AdminGaleria() {
           {albuns.map(album => {
             const imagens = album.fotos.filter(item => !isVideo(item))
             const videos = album.fotos.filter(isVideo)
+            const capaSelecionada = imagens.find(item => album.capaUrl === (item.thumbnailUrl || item.url))
+            const capaPreview = safeImageSrc(capaSelecionada?.thumbnailUrl || capaSelecionada?.url || imagens[0]?.thumbnailUrl || imagens[0]?.url || '')
             return (
               <section key={album.id} aria-label={`Configurar álbum ${album.nome}`} className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#111]">
                 <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] px-4 py-4 sm:px-6">
@@ -132,39 +153,76 @@ export default function AdminGaleria() {
                     <datalist id="categorias-album">
                       {categorias.map(categoria => <option key={categoria} value={categoria} />)}
                     </datalist>
-                    <label className="block font-body text-sm text-[#d6d2cc]">
-                      Foto de capa
-                      <select value={album.capaUrl ?? ''} onChange={event => atualizarAlbum(album.id, { capaUrl: event.target.value || null })} className={inputClass}>
-                        <option value="">Usar a primeira foto</option>
-                        {imagens.map((item, index) => <option key={item.id} value={item.thumbnailUrl || item.url}>Foto {index + 1}</option>)}
-                      </select>
-                    </label>
+                    <div>
+                      <span className="block font-body text-sm text-[#d6d2cc]">Foto de capa</span>
+                      <div className="mt-2 flex items-center gap-3 rounded-lg border border-white/10 bg-[#0b0b0b] p-2.5">
+                        <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-md bg-[#171614]">
+                          {capaPreview ? <Image src={capaPreview} alt="Prévia da capa atual" fill className="object-cover" unoptimized sizes="80px" /> : <span className="absolute inset-0 flex items-center justify-center text-2xl text-white/50">✧</span>}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs text-[#aaa]">{capaSelecionada ? 'Capa personalizada selecionada' : 'Usando a primeira foto do álbum'}</p>
+                          <button type="button" onClick={() => setAlbumSeletorCapaId(album.id)} disabled={!imagens.length} className="mt-2 rounded-md border border-[#c8b99a]/50 px-3 py-1.5 text-xs font-medium text-[#e8dfcf] transition hover:bg-[#c8b99a]/10 disabled:cursor-not-allowed disabled:opacity-40">Escolher na galeria</button>
+                        </div>
+                        {capaSelecionada && <button type="button" onClick={() => escolherCapa(album, null)} className="shrink-0 rounded-md px-2 py-1 text-xs text-[#aaa] hover:bg-white/5 hover:text-white" title="Voltar à primeira foto">Redefinir</button>}
+                      </div>
+                    </div>
                   </div>
 
-                  {album.fotos.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      {album.fotos.slice(0, 9).map((item, index) => {
-                        const video = isVideo(item)
-                        const previewSrc = safeImageSrc(item.thumbnailUrl || (video ? '' : item.url))
-                        const selecionado = !video && album.capaUrl === (item.thumbnailUrl || item.url)
-                        return video ? (
-                          <div key={item.id} className="relative aspect-square overflow-hidden rounded-lg border border-white/10 bg-black">
-                            <video src={item.url} poster={previewSrc || undefined} controls playsInline preload="none" aria-label={`Pré-visualização do vídeo ${index + 1}`} className="h-full w-full object-contain" />
-                          </div>
-                        ) : (
-                          <button type="button" key={item.id} onClick={() => atualizarAlbum(album.id, { capaUrl: item.thumbnailUrl || item.url })} aria-label={`Usar foto ${index + 1} como capa`} aria-pressed={selecionado} className={`relative aspect-square overflow-hidden rounded-lg border bg-black ${selecionado ? 'border-[#c8b99a] ring-2 ring-[#c8b99a]/60' : 'border-white/10'}`}>
-                            {previewSrc ? <Image src={previewSrc} alt="" fill className="object-cover" unoptimized sizes="180px" /> : <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-3xl text-white">✧</span>}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <div className="flex min-h-36 items-center justify-center rounded-lg border border-dashed border-white/10 px-4 text-center text-sm text-[#888]">Adicione fotos ou vídeos a esta subpasta no Google Drive. Uma foto pode ser escolhida como capa.</div>
-                  )}
+                  <div>
+                    <p className="mb-2 font-body text-xs text-[#999]">Prévia do conteúdo do álbum</p>
+                    {album.fotos.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {album.fotos.slice(0, 9).map((item, index) => {
+                          const video = isVideo(item)
+                          const previewSrc = safeImageSrc(item.thumbnailUrl || (video ? '' : item.url))
+                          return (
+                            <div key={item.id} className="relative aspect-square overflow-hidden rounded-lg border border-white/10 bg-black">
+                              {video ? <video src={item.url} poster={previewSrc || undefined} controls playsInline preload="none" aria-label={`Pré-visualização do vídeo ${index + 1}`} className="h-full w-full object-contain" /> : previewSrc ? <Image src={previewSrc} alt="" fill className="object-cover" unoptimized sizes="180px" /> : <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-3xl text-white">✧</span>}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex min-h-36 items-center justify-center rounded-lg border border-dashed border-white/10 px-4 text-center text-sm text-[#888]">Adicione fotos ou vídeos a esta subpasta no Google Drive. Uma foto pode ser escolhida como capa.</div>
+                    )}
+                  </div>
                 </div>
               </section>
             )
           })}
+        </div>
+      )}
+
+      {albumSeletorCapa && (
+        <div role="dialog" aria-modal="true" aria-label={`Escolher capa para ${albumSeletorCapa.nome}`} className="fixed inset-0 z-[200] flex flex-col bg-black/95">
+          <header className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 px-4 py-3 sm:px-6">
+            <div className="min-w-0">
+              <h2 className="truncate font-display text-lg text-[#f0ede8] sm:text-xl">Escolher foto de capa</h2>
+              <p className="mt-0.5 truncate font-body text-xs text-[#aaa]">{albumSeletorCapa.nome} · {albumSeletorCapa.fotos.filter(item => !isVideo(item)).length} fotos</p>
+            </div>
+            <button type="button" onClick={() => setAlbumSeletorCapaId(null)} aria-label="Fechar seleção de capa" className="shrink-0 rounded-full border border-white/20 px-3 py-2 text-sm text-white transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c8b99a]">Fechar <span aria-hidden="true">×</span></button>
+          </header>
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-5">
+            <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+              {albumSeletorCapa.fotos.filter(item => !isVideo(item)).map((item, index) => {
+                const previewSrc = safeImageSrc(item.thumbnailUrl || item.url)
+                const selecionada = albumSeletorCapa.capaUrl === (item.thumbnailUrl || item.url)
+                return (
+                  <article key={item.id} className={`overflow-hidden rounded-lg border bg-[#101010] ${selecionada ? 'border-[#c8b99a] ring-1 ring-[#c8b99a]/50' : 'border-white/10'}`}>
+                    <div className="relative aspect-square bg-[#171614]">
+                      {previewSrc ? <Image src={previewSrc} alt={`Opção de capa ${index + 1}`} fill loading="lazy" className="object-cover" unoptimized sizes="(max-width: 640px) 50vw, 20vw" /> : <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-4xl text-white/60">✧</span>}
+                    </div>
+                    <div className="p-2">
+                      <button type="button" onClick={() => escolherCapa(albumSeletorCapa, item)} aria-pressed={selecionada} className={`w-full rounded-md px-2 py-2 text-xs font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${selecionada ? 'bg-[#c8b99a] text-[#0a0a0a]' : 'border border-white/15 text-white hover:border-[#c8b99a]/60 hover:bg-white/5'}`}>
+                        {selecionada ? 'Capa atual' : 'Usar como capa'}
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+            {albumSeletorCapa.fotos.every(isVideo) && <p className="py-16 text-center font-body text-sm text-[#aaa]">Este álbum não tem fotos para usar como capa.</p>}
+          </div>
         </div>
       )}
     </div>
