@@ -1,11 +1,23 @@
-export type DrivePhoto = { id: string; url: string; legenda: string | null }
+export type DriveMedia = {
+  id: string
+  /** Para imagens, URL da miniatura; para vídeos, URL de reprodução do proxy. */
+  url: string
+  /** Miniatura leve para capas e cartões. */
+  thumbnailUrl: string
+  legenda: null
+  tipo: 'imagem' | 'video'
+}
+
+/** Alias para manter compatibilidade com código que já usava o nome antigo. */
+export type DrivePhoto = DriveMedia
 export type DriveAlbum = {
   id: string
   nome: string
   descricao: string | null
   capaUrl: string | null
   categoria: string | null
-  fotos: DrivePhoto[]
+  /** Mantido como `fotos` para não quebrar a resposta e as configurações existentes. Pode conter fotos e vídeos. */
+  fotos: DriveMedia[]
 }
 
 type DriveEntry = { id: string; name: string; isFolder: boolean }
@@ -13,6 +25,7 @@ type DriveEntry = { id: string; name: string; isFolder: boolean }
 const DRIVE_EMBED = 'https://drive.google.com/embeddedfolderview'
 const FOLDER_ID_PATTERN = /^[a-zA-Z0-9_-]{10,200}$/
 const IMAGE_EXTENSIONS = /\.(avif|bmp|gif|heic|heif|jpeg|jpg|png|tif|tiff|webp)$/i
+const VIDEO_EXTENSIONS = /\.(3gp|avi|m4v|mkv|mov|mp4|mpeg|mpg|webm|wmv)$/i
 
 function folderIdFromEnv(): string {
   const configured = process.env.GOOGLE_DRIVE_GALLERY_FOLDER_URL?.trim()
@@ -49,6 +62,10 @@ function driveIdFromHref(href: string): { id: string; isFolder: boolean } | null
   return null
 }
 
+function isMediaName(name: string): boolean {
+  return IMAGE_EXTENSIONS.test(name) || VIDEO_EXTENSIONS.test(name)
+}
+
 function entriesFromHtml(source: string): DriveEntry[] {
   const html = decodeHtml(source)
   const entries = new Map<string, DriveEntry>()
@@ -66,7 +83,7 @@ function entriesFromHtml(source: string): DriveEntry[] {
       || attr(opening, 'data-tooltip')
       || anchor.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
     const name = decodeHtml(label).replace(/^Open\s+/i, '').trim()
-    if (!driveRef.isFolder && !IMAGE_EXTENSIONS.test(name)) continue
+    if (!driveRef.isFolder && !isMediaName(name)) continue
     if (!entries.has(driveRef.id)) entries.set(driveRef.id, { id: driveRef.id, name: name || driveRef.id, isFolder: driveRef.isFolder })
   }
 
@@ -95,14 +112,18 @@ async function listFolder(folderId: string): Promise<DriveEntry[]> {
 }
 
 function photosToAlbum(folder: DriveEntry, items: DriveEntry[]): DriveAlbum | null {
-  const fotos = items
-    .filter(item => !item.isFolder && IMAGE_EXTENSIONS.test(item.name))
-    .map(item => ({
-      id: item.id,
-      url: `https://drive.google.com/thumbnail?id=${encodeURIComponent(item.id)}&sz=w2000`,
-      legenda: item.name.replace(/\.[^.]+$/, ''),
-    }))
-  return { id: folder.id, nome: folder.name, descricao: null, capaUrl: fotos[0]?.url ?? null, categoria: null, fotos }
+  const fotos: DriveMedia[] = items
+    .filter(item => !item.isFolder && isMediaName(item.name))
+    .map(item => {
+      const tipo = IMAGE_EXTENSIONS.test(item.name) ? 'imagem' as const : 'video' as const
+      const thumbnailUrl = `https://drive.google.com/thumbnail?id=${encodeURIComponent(item.id)}&sz=w640`
+      const url = tipo === 'imagem'
+        ? thumbnailUrl
+        : `/api/galeria-drive/download?id=${encodeURIComponent(item.id)}&preview=1`
+      return { id: item.id, url, thumbnailUrl, legenda: null, tipo }
+    })
+  const primeiraCapa = fotos.find(item => item.tipo === 'imagem')?.thumbnailUrl ?? null
+  return { id: folder.id, nome: folder.name, descricao: null, capaUrl: primeiraCapa, categoria: null, fotos }
 }
 
 /** Lê somente a pasta pública e suas subpastas imediatas; nenhuma permissão de escrita é solicitada. */
