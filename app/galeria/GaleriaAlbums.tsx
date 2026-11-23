@@ -149,7 +149,11 @@ export default function GaleriaAlbums({ albuns }: { albuns: GalleryAlbum[] }) {
                       {video ? (
                         <video src={item.url} poster={previewSrc || undefined} controls playsInline preload="metadata" aria-label={`Vídeo ${index + 1}`} className="absolute inset-0 h-full w-full object-contain" />
                       ) : previewSrc ? (
-                        <Image src={previewSrc} alt={`Foto ${index + 1}`} fill loading="lazy" className="object-contain" unoptimized sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+                        <>
+                          <Image src={previewSrc} alt="" aria-hidden="true" fill loading="lazy" className="scale-110 object-cover opacity-60 blur-2xl" unoptimized sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+                          <div aria-hidden="true" className="absolute inset-0 bg-black/25" />
+                          <Image src={previewSrc} alt={`Foto ${index + 1}`} fill loading="lazy" className="z-10 object-contain" unoptimized sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+                        </>
                       ) : (
                         <div aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-4xl text-white">✧</div>
                       )}
