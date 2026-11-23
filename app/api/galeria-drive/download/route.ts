@@ -51,6 +51,8 @@ export async function GET(req: NextRequest) {
     }
     const extension = extensionByType[contentType] || 'jpg'
     const filename = `${safeBaseName(searchParams.get('name'))}.${extension}`
+    const fallbackFilename = filename.replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '_')
+    const encodedFilename = encodeURIComponent(filename).replace(/['()*]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
 
     return new NextResponse(upstream.body, {
       status: 200,
