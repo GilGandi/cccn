@@ -144,8 +144,8 @@ export default function GaleriaAlbums({ albuns }: { albuns: GalleryAlbum[] }) {
                 const video = isVideo(item)
                 const previewSrc = safeImageSrc(item.thumbnailUrl || (video ? '' : item.url))
                 return (
-                  <article key={item.id} className="overflow-hidden rounded-lg border border-white/10 bg-[#101010]">
-                    <div className="relative aspect-[4/3] bg-[#171614]">
+                  <article key={item.id} className="flex overflow-hidden rounded-lg border border-white/10 bg-[#101010]">
+                    <div className="relative aspect-[4/3] min-w-0 flex-1 bg-[#171614]">
                       {video ? (
                         <video src={item.url} poster={previewSrc || undefined} controls playsInline preload="metadata" aria-label={`Vídeo ${index + 1}`} className="absolute inset-0 h-full w-full object-contain" />
                       ) : previewSrc ? (
@@ -154,7 +154,7 @@ export default function GaleriaAlbums({ albuns }: { albuns: GalleryAlbum[] }) {
                         <div aria-hidden="true" className="absolute inset-0 flex items-center justify-center text-4xl text-white">✧</div>
                       )}
                     </div>
-                    <div className="flex justify-end gap-2 p-2 sm:p-3">
+                    <div className="flex w-12 shrink-0 flex-col items-center justify-center gap-2 border-l border-white/10 p-1.5 sm:w-14 sm:p-2">
                       <a href={downloadUrl(item, index)} download aria-label={`Baixar ${video ? 'vídeo' : 'foto'} ${index + 1}`} className="flex h-10 w-10 items-center justify-center rounded-md bg-[#c8b99a] text-[#0a0a0a] transition hover:bg-[#d4c8b0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" title="Baixar">
                         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                       </a>
