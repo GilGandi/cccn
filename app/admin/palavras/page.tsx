@@ -8,6 +8,13 @@ const empty = { titulo: '', descricao: '', videoUrl: '', pregador: '', data: new
 const inp = "w-full bg-[#0f0f0f] border border-white/[0.08] text-[#f0ede8] font-body text-[0.85rem] px-3 py-2.5 rounded-md outline-none focus:border-[#c8b99a]/50 transition-colors placeholder:text-[#444]"
 const lbl = "block font-body text-[0.6rem] tracking-[0.18em] uppercase text-[#666] mb-1.5"
 
+function isInstagramUrl(value: string) {
+  try {
+    const url = new URL(value)
+    return ['instagram.com', 'www.instagram.com'].includes(url.hostname) && /^\/(?:p|reel|tv)\/[\w-]+/.test(url.pathname)
+  } catch { return false }
+}
+
 export default function AdminPalavras() {
   const [items, setItems]   = useState<Palavra[]>([])
   const [modal, setModal]   = useState<'novo' | 'editar' | null>(null)
@@ -77,7 +84,7 @@ export default function AdminPalavras() {
                 <span className="font-body text-[0.9rem] text-[#f0ede8] truncate">{p.titulo}</span>
                 {!p.publicado && <span className="font-body text-[0.55rem] tracking-widest uppercase px-2 py-0.5 rounded bg-white/[0.06] text-[#555]">Rascunho</span>}
                 {p.videoUrl && (
-                  <span className="font-body text-[0.55rem] tracking-widest uppercase px-2 py-0.5 rounded bg-[#c8b99a]/10 text-[#c8b99a]">Vídeo</span>
+                  <span className="font-body text-[0.55rem] tracking-widest uppercase px-2 py-0.5 rounded bg-[#c8b99a]/10 text-[#c8b99a]">{isInstagramUrl(p.videoUrl) ? 'Instagram' : 'Vídeo'}</span>
                 )}
               </div>
               <div className="font-body text-[0.75rem] text-[#555] mt-0.5">
@@ -87,7 +94,7 @@ export default function AdminPalavras() {
             <div className="flex gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
               <button onClick={() => openEditar(p)}
                 className="p-2 rounded-lg text-[#555] hover:text-[#f0ede8] hover:bg-white/[0.06] transition-all">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 4 1-4 9.5-9.5z"/></svg>
               </button>
               <button onClick={() => del(p.id)}
                 className="p-2 rounded-lg text-[#555] hover:text-red-400 hover:bg-red-500/[0.08] transition-all">
@@ -120,9 +127,10 @@ export default function AdminPalavras() {
               </div>
             </div>
             <div>
-              <label className={lbl}>Link do vídeo (YouTube / Vimeo)</label>
-              <input className={inp} placeholder="https://youtube.com/watch?v=..." value={form.videoUrl}
+              <label className={lbl}>Link do vídeo ou publicação (YouTube / Vimeo / Instagram)</label>
+              <input className={inp} type="url" placeholder="https://www.instagram.com/p/... ou https://youtube.com/watch?v=..." value={form.videoUrl}
                 onChange={e => setForm({ ...form, videoUrl: e.target.value })} />
+              <p className="font-body text-[0.68rem] text-[#666] mt-1.5">Cole o link direto de um vídeo, post ou reel público. A publicação do Instagram será exibida nesta página.</p>
             </div>
             <div>
               <label className={lbl}>Descrição</label>

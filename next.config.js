@@ -25,7 +25,7 @@ const nextConfig = {
       "img-src 'self' data: blob: https: https://i.ytimg.com",
       "media-src 'self' https:",
       "connect-src 'self'",
-      "frame-src https://www.google.com https://open.spotify.com https://www.youtube.com https://youtube.com",
+      "frame-src https://www.google.com https://open.spotify.com https://www.youtube.com https://youtube.com https://www.instagram.com https://player.vimeo.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

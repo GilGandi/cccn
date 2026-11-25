@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { parseJson } from '@/lib/parseJson'
 import { requireAuth } from '@/lib/apiAuth'
 import { prisma } from '@/lib/prisma'
-import { isValidCuid, isValidVideoUrl } from '@/lib/validators'
+import { isValidCuid, isValidInstagramPostUrl, isValidVideoUrl } from '@/lib/validators'
 
 type Params = Promise<{ id: string }>
 
@@ -26,10 +26,11 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
     publicado: typeof body.publicado === 'boolean' ? body.publicado : true,
     videoUrl:  null,
   }
-  if (body.videoUrl?.trim()) {
-    if (!isValidVideoUrl(body.videoUrl))
-      return NextResponse.json({ error: 'URL de vídeo inválida. Use YouTube ou Vimeo.' }, { status: 400 })
-    data.videoUrl = body.videoUrl.trim().slice(0, 500)
+  const mediaUrl = typeof body.videoUrl === 'string' ? body.videoUrl.trim() : ''
+  if (mediaUrl) {
+    if (!isValidVideoUrl(mediaUrl) && !isValidInstagramPostUrl(mediaUrl))
+      return NextResponse.json({ error: 'Link inválido. Use um vídeo do YouTube/Vimeo ou uma publicação/reel do Instagram.' }, { status: 400 })
+    data.videoUrl = mediaUrl.slice(0, 500)
   }
   if (body.data) {
     const d = new Date(body.data)

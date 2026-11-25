@@ -3,8 +3,17 @@
 export function isValidVideoUrl(url: string): boolean {
   try {
     const u = new URL(url)
-    const allowed = ['youtube.com', 'www.youtube.com', 'youtu.be', 'vimeo.com', 'www.vimeo.com']
+    const allowed = ['youtube.com', 'www.youtube.com', 'youtu.be', 'www.youtu.be', 'm.youtube.com', 'vimeo.com', 'www.vimeo.com']
     return allowed.includes(u.hostname) && u.protocol === 'https:'
+  } catch { return false }
+}
+
+export function isValidInstagramPostUrl(url: string): boolean {
+  try {
+    const u = new URL(url)
+    return ['instagram.com', 'www.instagram.com'].includes(u.hostname)
+      && u.protocol === 'https:'
+      && /^\/(?:p|reel|tv)\/[\w-]+\/?$/.test(u.pathname)
   } catch { return false }
 }
 
